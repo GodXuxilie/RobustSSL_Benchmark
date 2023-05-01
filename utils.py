@@ -489,14 +489,13 @@ from torchvision import datasets, transforms
 def get_loader(args):
     # setup data loader
     transform_train = transforms.Compose([
-    # transforms.Resize(32),
-    transforms.RandomCrop(96 if args.dataset == 'stl10' else 32, padding=4),
-    # transforms.RandomCrop(96 if args.dataset == 'stl10' else 32, padding=4),
+    transforms.Resize(args.resize),
+    transforms.RandomCrop(args.resize if args.dataset == 'stl10' else 32, padding=4),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     ])
     transform_test = transforms.Compose([
-    # transforms.Resize(32),
+    transforms.Resize(args.resize),
     transforms.ToTensor(),
     ])
 
@@ -559,7 +558,6 @@ def get_model(args, num_classes, mode, log, device='cuda'):
                 if name not in ['fc.weight', 'fc.bias']:
                     param.requires_grad = False
         parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-        print(len(parameters))
         assert len(parameters) == 2  # fc.weight, fc.bias
     if mode == 'AFF':
         parameters = model.parameters()
@@ -581,13 +579,13 @@ def get_model(args, num_classes, mode, log, device='cuda'):
         else:
             state_dict = checkpoint
 
-        if args.cvt_state_dict:
+        if mode == 'SLF' or mode == 'ALF':
             state_dict = cvt_state_dict(
                 state_dict, args, num_classes=num_classes)
         elif not args.eval_only:
             # zero init fc
-            state_dict['fc.weight'] = torch.zeros(num_classes, 512).cuda()
-            state_dict['fc.bias'] = torch.zeros(num_classes).cuda()
+            state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
+            state_dict['fc.bias'] = torch.zeros(num_classes).to(device)
 
         model.load_state_dict(state_dict, strict=False)
         log.info('read checkpoint {}'.format(args.checkpoint))
@@ -611,6 +609,7 @@ def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
     if mode == 'SLF' or mode == 'ALF':
         model.eval()
         parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+        print(len(parameters))
         assert len(parameters) == 2  # fc.weight, fc.bias
     if mode == 'AFF':
         model.train()
@@ -634,10 +633,9 @@ def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
         if mode == 'ALF':
             data = pgd_attack(model, data, target, device, eps=args.epsilon,
                                       alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
-
             output = model.eval()(data)
             loss = criterion(output, target)
-        if mode == 'ALF':
+        if mode == 'AFF':
             loss = trades_loss_dual(model=model,
                                    x_natural=data,
                                    y=target,
@@ -655,18 +653,19 @@ def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
         end = time.time()
         # print progress
         if batch_idx % 10 == 0:
-            log.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tData time: {:.3f}\tTotal time: {:.3f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
+            log.info('{} Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tData time: {:.3f}\tTotal time: {:.3f}'.format(
+                mode, epoch, batch_idx * len(data), len(train_loader.dataset),
                      100. * batch_idx / len(train_loader), loss.item(), dataTimeAve.avg, totalTimeAve.avg))
 
-def train_loop(args, model, optimizer, scheduler, train_loader, test_loader, device, log, model_dir):
+
+def train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir):
     for epoch in range(args.start_epoch + 1, args.epochs + 1):
         # adjust learning rate for SGD
         log.info("current lr is {}".format(
             optimizer.state_dict()['param_groups'][0]['lr']))
 
         # linear classification
-        train(args, model, device, train_loader, optimizer, epoch, log)
+        train(args, model, device, train_loader, optimizer, epoch, log, mode)
         scheduler.step()
 
          # evaluation
@@ -689,7 +688,7 @@ def train_loop(args, model, optimizer, scheduler, train_loader, test_loader, dev
             'epoch': epoch,
             'state_dict': model.state_dict(),
             'optim': optimizer.state_dict(),
-        }, os.path.join(model_dir, 'model_finetune.pt'))
+        }, os.path.join(model_dir, '{}_model_finetune.pt'.format(mode)))
 
 def cvt_state_dict(state_dict, args, num_classes):
     # deal with adv bn
@@ -768,6 +767,7 @@ def clean_accuracy(model: nn.Module,
 def eval_test_nat(model, test_loader, device, advFlag='pgd'):
     torch.manual_seed(1)
     model.eval()
+    acc = 0.
     for images, labels in test_loader:
          images = images.to(device)
          labels = labels.to(device)
@@ -777,6 +777,7 @@ def eval_test_nat(model, test_loader, device, advFlag='pgd'):
             else:
                 output = model.eval()(images)
             acc += (output.max(1)[1] == labels).float().sum()
+    print(acc, len(test_loader.dataset))
     return acc.item() / len(test_loader.dataset)
 
 def eval_test_OOD(model, test_loader, log, device, advFlag='pgd'):
@@ -794,9 +795,9 @@ def eval_test_OOD(model, test_loader, log, device, advFlag='pgd'):
         for j in range(len(CORRUPTIONS)):
             corruptions = [CORRUPTIONS[j]]
             if test_loader == 'cifar100':
-                x_test, y_test = load_cifar100c(n_examples=10000, corruptions=corruptions, severity=i+1)
-            else:
-                x_test, y_test = load_cifar10c(n_examples=10000, corruptions=corruptions, severity=i+1)
+                x_test, y_test = load_cifar100c(n_examples=10000, corruptions=corruptions, severity=i+1, data_dir='../data')
+            elif test_loader == 'cifar10':
+                x_test, y_test = load_cifar10c(n_examples=10000, corruptions=corruptions, severity=i+1, data_dir='../data')
             acc = clean_accuracy(model, x_test, y_test, device=device,advFlag=advFlag)
             log.info('{}-{}, Acc: {}'.format(CORRUPTIONS[j], i+1, acc))
             acc_sum += acc
@@ -806,11 +807,21 @@ def eval_test_OOD(model, test_loader, log, device, advFlag='pgd'):
     return acc_list, np.mean(acc_list)
 
 from autoattack import AutoAttack
-def runAA(model, loader, log_path):
+def runAA(model, test_loader, log_path, advFlag='pgd'):
     model.eval()
+    acc = 0.
     adversary = AutoAttack(model, norm='Linf', eps=8/255, version='standard', log_path=log_path)
-    for images, labels in loader:
+    adversary.attacks_to_run=['apgd-ce']
+    for images, labels in test_loader:
         images = images.cuda()
         labels = labels.cuda()
-        xadv = adversary.run_standard_evaluation(images, labels, bs=512)
+        xadv = adversary.run_standard_evaluation(images, labels, bs=256)
+        with torch.no_grad():
+            if advFlag is not None:
+                output = model.eval()(xadv, 'pgd')
+            else:
+                output = model.eval()(xadv)
+        acc += (output.max(1)[1] == labels).float().sum()
+    return acc.item() / len(test_loader.dataset)
+
 
