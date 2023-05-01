@@ -107,6 +107,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 </table>
 
 ### Robustness against common corruptions
+
 <table>
 <thead>
   <tr>
@@ -121,22 +122,22 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   <tr>
     <th>Mean</th>
     <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
+    <th>CS-2</th>
+    <th>CS-3</th>
+    <th>CS-4</th>
+    <th>CS-5</th>
     <th>Mean</th>
     <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
+    <th>CS-2</th>
+    <th>CS-3</th>
+    <th>CS-4</th>
+    <th>CS-5</th>
     <th>Mean</th>
     <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
+    <th>CS-2</th>
+    <th>CS-3</th>
+    <th>CS-4</th>
+    <th>CS-5</th>
   </tr>
 </thead>
 <tbody>
@@ -238,7 +239,6 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   </tr>
 </tbody>
 </table>
-
 
 ## CIFAR-100 task
 
@@ -321,6 +321,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 </table>
 
 ### Robustness against common corruptions
+
 <table>
 <thead>
   <tr>
@@ -335,22 +336,22 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   <tr>
     <th>Mean</th>
     <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
+    <th>CS-2</th>
+    <th>CS-3</th>
+    <th>CS-4</th>
+    <th>CS-5</th>
     <th>Mean</th>
     <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
+    <th>CS-2</th>
+    <th>CS-3</th>
+    <th>CS-4</th>
+    <th>CS-5</th>
     <th>Mean</th>
     <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
-    <th>CS-1</th>
+    <th>CS-2</th>
+    <th>CS-3</th>
+    <th>CS-4</th>
+    <th>CS-5</th>
   </tr>
 </thead>
 <tbody>
