@@ -73,6 +73,82 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 
 ## CIFAR-10 task
 
+<table>
+<thead>
+  <tr>
+    <th rowspan="2">Rank</th>
+    <th rowspan="2">Pre-training</th>
+    <th rowspan="2">Reference</th>
+    <th rowspan="2">Mean<br>RA</th>
+    <th rowspan="2">Mean<br>SA</th>
+    <th colspan="2">SLF</th>
+    <th colspan="2">ALF</th>
+    <th colspan="2">AFF</th>
+  </tr>
+  <tr>
+    <th>RA</th>
+    <th>SA</th>
+    <th>RA</th>
+    <th>SA</th>
+    <th>RA</th>
+    <th>SA</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>1</td>
+    <td>ACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>AdvCL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>A-InfoNCE</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>DynACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
 ## CIFAR-100 task
 
 ## STL10 task
