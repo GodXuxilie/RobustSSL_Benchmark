@@ -177,6 +177,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 
 ## CIFAR-100 task
 
+### Robustness against adversarial attacks
 <table>
 <thead>
   <tr>
@@ -254,8 +255,74 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 </tbody>
 </table>
 
-## STL10 task
+### Robustness against common corruptions
+<table>
+<thead>
+  <tr>
+    <th rowspan="2">Rank</th>
+    <th rowspan="2">Pre-training</th>
+    <th rowspan="2">Reference</th>
+    <th rowspan="2">Mean<br>Acc</th>
+    <th colspan="5">Corruption severity</th>
+  </tr>
+  <tr>
+    <th>1</th>
+    <th>2</th>
+    <th>3</th>
+    <th>4</th>
+    <th>5</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>1</td>
+    <td>ACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>AdvCL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>A-InfoNCE</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>DynACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
 
+## STL10 task
+### Robustness against adversarial attacks
 <table>
 <thead>
   <tr>
@@ -322,6 +389,72 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
     <td>ACL</td>
     <td><a href="https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html">Jiang et al., NeurIPS'20</a></td>
     <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
+
+### Robustness against common corruptions
+<table>
+<thead>
+  <tr>
+    <th rowspan="2">Rank</th>
+    <th rowspan="2">Pre-training</th>
+    <th rowspan="2">Reference</th>
+    <th rowspan="2">Mean<br>Acc</th>
+    <th colspan="5">Corruption severity</th>
+  </tr>
+  <tr>
+    <th>1</th>
+    <th>2</th>
+    <th>3</th>
+    <th>4</th>
+    <th>5</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>1</td>
+    <td>ACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>AdvCL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>A-InfoNCE</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>DynACL</td>
     <td></td>
     <td></td>
     <td></td>
@@ -337,6 +470,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 
 ## From CIFAR-10 to STL10
 
+### Robustness against adversarial attacks
 <table>
 <thead>
   <tr>
@@ -414,8 +548,74 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 </tbody>
 </table>
 
-## From CIFAR-100 to STL10
+### Robustness against common corruptions
+<table>
+<thead>
+  <tr>
+    <th rowspan="2">Rank</th>
+    <th rowspan="2">Pre-training</th>
+    <th rowspan="2">Reference</th>
+    <th rowspan="2">Mean<br>Acc</th>
+    <th colspan="5">Corruption severity</th>
+  </tr>
+  <tr>
+    <th>1</th>
+    <th>2</th>
+    <th>3</th>
+    <th>4</th>
+    <th>5</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>1</td>
+    <td>ACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>AdvCL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>A-InfoNCE</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>DynACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
 
+## From CIFAR-100 to STL10
+### Robustness against adversarial attacks
 <table>
 <thead>
   <tr>
@@ -482,6 +682,72 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
     <td>ACL</td>
     <td><a href="https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html">Jiang et al., NeurIPS'20</a></td>
     <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
+
+### Robustness against common corruptions
+<table>
+<thead>
+  <tr>
+    <th rowspan="2">Rank</th>
+    <th rowspan="2">Pre-training</th>
+    <th rowspan="2">Reference</th>
+    <th rowspan="2">Mean<br>Acc</th>
+    <th colspan="5">Corruption severity</th>
+  </tr>
+  <tr>
+    <th>1</th>
+    <th>2</th>
+    <th>3</th>
+    <th>4</th>
+    <th>5</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>1</td>
+    <td>ACL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>AdvCL</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>A-InfoNCE</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>DynACL</td>
     <td></td>
     <td></td>
     <td></td>
