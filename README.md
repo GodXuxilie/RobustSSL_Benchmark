@@ -3,17 +3,17 @@
 This repository provides ***a unified finetuning and evaluation tool*** to evaluate the performance of finetuned models on the downstream tasks.
 
 ```
-python finetuning_eval.py    --gpu GPU_id \
-                        --experiment path_of_log_to_be_saved \
-                        --pretraining  pre_training_method \
-                        --model type_of_backbone_network \
-                        --checkpoint path_of_pretrained_checkpoint \ 
-                        --dataset downstream_dataset: [cifar10, cifar100, stl10] \ 
-                        --tune 1 \
-                        --label_ratio 1.0 \
-                        --tune_mode finetuning_mode: [ensemble, SLF, ALF, AFF] \
-                        --eval 1 \
-                        --eval_mode evalution_mode: [ensemble, adv_attack, common_corrup] \
+python finetuning_eval.py   --gpu GPU_id \
+                            --experiment path_of_log_to_be_saved \
+                            --pretraining  pre_training_method \
+                            --model type_of_backbone_network \
+                            --checkpoint path_of_pretrained_checkpoint \ 
+                            --dataset downstream_dataset: [cifar10, cifar100, stl10] \ 
+                            --tune 1 \
+                            --label_ratio 1.0 \
+                            --tune_mode finetuning_mode: [ensemble, SLF, ALF, AFF] \
+                            --eval 1 \
+                            --eval_mode evalution_mode: [ensemble, adv_attack, common_corrup] \
 ```
 
 # Requirement
