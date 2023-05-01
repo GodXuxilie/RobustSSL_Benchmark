@@ -97,8 +97,8 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 <tbody>
   <tr>
     <td>1</td>
-    <td>ACL</td>
-    <td></td>
+    <td>DynACL</td>
+    <td><a href="https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ">Luo et al., ICLR'23</a></td>
     <td></td>
     <td></td>
     <td></td>
@@ -110,8 +110,8 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   </tr>
   <tr>
     <td>2</td>
-    <td>AdvCL</td>
-    <td></td>
+    <td>A-InfoNCE</td>
+    <td><a href="https://arxiv.org/abs/2207.08374#:~:text=Contrastive%20learning%20(CL)%20has%20recently,other%2C%20yields%20better%20adversarial%20robustness.">Yu et al., ECCV'22</a></td>
     <td></td>
     <td></td>
     <td></td>
@@ -123,8 +123,8 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   </tr>
   <tr>
     <td>3</td>
-    <td>A-InfoNCE</td>
-    <td></td>
+    <td>AdvCL</td>
+    <td><a href="https://arxiv.org/abs/2111.01124">Fan et al., NeurIPS'21</a></td>
     <td></td>
     <td></td>
     <td></td>
@@ -136,8 +136,8 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   </tr>
   <tr>
     <td>4</td>
-    <td>DynACL</td>
-    <td></td>
+    <td>ACL</td>
+    <td><a href="https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html">Jiang et al., NeurIPS'20</a></td>
     <td></td>
     <td></td>
     <td></td>
@@ -149,6 +149,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   </tr>
 </tbody>
 </table>
+
 ## CIFAR-100 task
 
 ## STL10 task
