@@ -23,9 +23,18 @@ python finetuning_eval.py   --gpu GPU_id \
 
 
 # ACL pre-training
-In the directory of ```Pretraining```, we cloned the pre-training code of [ACL](https://github.com/VITA-Group/Adversarial-Contrastive-Learning), [AdvCL](https://github.com/LijieFan/AdvCL), [A-InfoNCE](https://github.com/yqy2001/A-InfoNCE), and [DynACL](https://github.com/PKU-ML/DYNACL). You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training.
-We released the pre-trained weights in [this Dropbox directory](https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0).
-Note that the pre-trained encoders via ACL on CIFAR-10/CIFAR-100 and DynACL on CIFAR-10/CIFAR-100/STL10 haved been provided in their GitHub. We copied them into our Dropbox directory.
+In the directory of ```Pretraining```, we cloned the pre-training code of [ACL](https://github.com/VITA-Group/Adversarial-Contrastive-Learning), [RoCL](https://github.com/Kim-Minseon/RoCL), [AdvCL](https://github.com/LijieFan/AdvCL), [A-InfoNCE](https://github.com/yqy2001/A-InfoNCE), [DeACL](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e), and [DynACL](https://github.com/PKU-ML/DYNACL). You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training.
+We released all the pre-trained weights in [this Dropbox directory](https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0) or click on the ```link``` in the following table to download the specific pre-trained weight.
+
+| ResNet-18 | ACL | AdvCL | A-InfoNCE | DeACL | DynACL |
+|---|---|---|---|---|---|
+| CIFAR-10 | [link<sup>*</sup>]() | [link]() | [link]() | [link<sup>*</sup>]() | [link<sup>*</sup>]() |
+| CIFAR-100 | [link<sup>*</sup>]() | [link]() | [link]() | - | [link<sup>*</sup>]() |
+| STL10 | [link]() | - | - | - | [link<sup>*</sup>]() |
+
+```*``` denotes the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
+
+More pre-trained weights will be coming soon!
 
 
 # Performance Benchmarking Across Tasks
