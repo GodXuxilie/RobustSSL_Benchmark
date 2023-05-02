@@ -23,8 +23,8 @@ python finetuning_eval.py   --gpu GPU_id \
 
 
 # ACL pre-training
-In the directory of ```Pretraining```, we cloned the pre-training code of [ACL](), [AdvCL](), [A-InfoNCE](), and [DynACL](). You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training.
-We released the pre-trained weights in [this Dropbox directory]().
+In the directory of ```Pretraining```, we cloned the pre-training code of [ACL](https://github.com/VITA-Group/Adversarial-Contrastive-Learning), [AdvCL](https://github.com/LijieFan/AdvCL), [A-InfoNCE](https://github.com/yqy2001/A-InfoNCE), and [DynACL](https://github.com/PKU-ML/DYNACL). You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training.
+We released the pre-trained weights in [this Dropbox directory](https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0).
 Note that the pre-trained encoders via ACL on CIFAR-10/CIFAR-100 and DynACL on CIFAR-10/CIFAR-100/STL10 haved been provided in their GitHub. We copied them into our Dropbox directory.
 
 
