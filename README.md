@@ -28,9 +28,9 @@ We released all the pre-trained weights in [this Dropbox directory](https://www.
 
 | ResNet-18 | ACL | AdvCL | A-InfoNCE | DeACL | DynACL |
 |---|---|---|---|---|---|
-| CIFAR-10 | [link<sup>*</sup>]() | [link]() | [link]() | [link<sup>*</sup>]() | [link<sup>*</sup>]() |
-| CIFAR-100 | [link<sup>*</sup>]() | [link]() | [link]() | - | [link<sup>*</sup>]() |
-| STL10 | [link]() | - | - | - | [link<sup>*</sup>]() |
+| CIFAR-10 | [link<sup>*</sup>]() | [link](https://www.dropbox.com/s/fzwg9gcf4ty5oji/AdvCL.pt?dl=0) | [link](https://www.dropbox.com/s/bk8eu96ppcj44sz/AInfoNCE.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/wo1qrrnybycunn3/DeACL.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/vhxt1hkrtpz2bf9/DynACL.pt?dl=0) |
+| CIFAR-100 | [link<sup>*</sup>](https://www.dropbox.com/s/02hhe679zo6c7da/ACL_DS_CIFAR100.pt?dl=0) | [link]() | [link]() | - | [link<sup>*</sup>](https://www.dropbox.com/s/mabnrcp7zahp6ke/DynACL_CIFAR100.pt?dl=0) |
+| STL10 | [link](https://www.dropbox.com/s/6jenhn0bpe5ifle/ACL_DS_STL10.pt?dl=0) | - | - | - | [link<sup>*</sup>](https://www.dropbox.com/s/ydd6lbracw73019/DynACL_STL10.pt?dl=0) |
 
 ```*``` denotes the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
 
@@ -508,32 +508,6 @@ We provide the script of finetuning and evalutions in ```run_tune_eval.sh```.
   </tr>
   <tr>
     <td>2</td>
-    <td>A-InfoNCE</td>
-    <td><a href="https://arxiv.org/abs/2207.08374#:~:text=Contrastive%20learning%20(CL)%20has%20recently,other%2C%20yields%20better%20adversarial%20robustness.">Yu et al., ECCV'22</a></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>3</td>
-    <td>AdvCL</td>
-    <td><a href="https://arxiv.org/abs/2111.01124">Fan et al., NeurIPS'21</a></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>4</td>
     <td>ACL</td>
     <td><a href="https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html">Jiang et al., NeurIPS'20</a></td>
     <td></td>
