@@ -23,14 +23,14 @@ python finetuning_eval.py   --gpu GPU_id \
 
 
 # ACL pre-training
-In the directory of ```Pretraining```, we cloned the pre-training code of ACL, AdvCL, A-InfoNCE, and DynACL and provide the script of running robust pre-training in ```run_pretraining.sh```. 
+In the directory of ```Pretraining```, we cloned the pre-training code of [ACL](), [AdvCL](), [A-InfoNCE](), and [DynACL](). You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training.
 We released the pre-trained weights in [this Dropbox directory]().
 Note that the pre-trained encoders via ACL on CIFAR-10/CIFAR-100 and DynACL on CIFAR-10/CIFAR-100/STL10 haved been provided in their GitHub. We copied them into our Dropbox directory.
 
 
 # Performance Benchmarking Across Tasks
 Here, robust pre-training and finetuning are conducted on the same datasets. 
-We provide the script of finetuning and evalutions in ```run.sh```.
+We provide the script of finetuning and evalutions in ```run_tune_eval.sh```.
 
 ## CIFAR-10 task
 
