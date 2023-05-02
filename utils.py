@@ -9,7 +9,13 @@ from pdb import set_trace
 from collections import OrderedDict
 from torch.autograd import Variable
 import torch.nn.functional as F
-
+import torchvision
+from torchvision import datasets, transforms
+import torch.optim as optim
+from autoattack import AutoAttack
+from robustbench.data import load_cifar10c,load_cifar100c
+import math
+from models.resnet import resnet18 as resnet18_singleBN
 
 def normalize_fn(tensor, mean, std):
     """Differentiable version of torchvision.functional.normalize"""
@@ -115,55 +121,6 @@ def eval_adv_test(model, device, test_loader, epsilon, alpha, criterion, log, at
     return top1.avg
 
 
-def eval_adv_test_dist(model, device, test_loader, epsilon, alpha, criterion, log, world_size, attack_iter=40, randomInit=True):
-    batch_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-
-    # fix random seed for testing
-    torch.manual_seed(1)
-
-    model.eval()
-    end = time.time()
-    for i, (input, target) in enumerate(test_loader):
-        input, target = input.cuda(
-            non_blocking=True), target.cuda(non_blocking=True)
-        input_adv = pgd_attack(model, input, target, device, eps=epsilon,
-                               iters=attack_iter, alpha=alpha, randomInit=randomInit).data
-
-        # compute output
-        output = model(input_adv)
-        output_list = [torch.zeros_like(output) for _ in range(world_size)]
-        torch.distributed.all_gather(output_list, output)
-        output = torch.cat(output_list)
-
-        target_list = [torch.zeros_like(target) for _ in range(world_size)]
-        torch.distributed.all_gather(target_list, target)
-        target = torch.cat(target_list)
-
-        loss = criterion(output, target)
-
-        # measure accuracy and record loss
-        prec1, = accuracy(output.data, target, topk=(1,))
-        top1.update(prec1, input.size(0))
-        losses.update(loss.item(), input.size(0))
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-        if (i % 10 == 0) or (i == len(test_loader) - 1):
-            log.info(
-                'Test: [{}/{}]\t'
-                'Time: {batch_time.val:.4f}({batch_time.avg:.4f})\t'
-                'Loss: {loss.val:.3f}({loss.avg:.3f})\t'
-                'Prec@1: {top1.val:.3f}({top1.avg:.3f})\t'.format(
-                    i, len(test_loader), batch_time=batch_time,
-                    loss=losses, top1=top1
-                )
-            )
-
-    log.info(' * Adv Prec@1 {top1.avg:.3f}'.format(top1=top1))
-    return top1.avg
-
 def trades_loss(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, perturb_steps=10, beta=6.0, distance='l_inf'):
     batch_size = len(x_natural)
     # define KL-loss
@@ -215,7 +172,7 @@ def setup_seed(seed):
 
 
 def accuracy(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k"""
+    """Computes the precision@k for the speaccuracycified values of k"""
     maxk = max(topk)
     batch_size = target.size(0)
 
@@ -277,34 +234,6 @@ def fix_bn(model, fixmode):
     else:
         assert False
 
-
-# loss
-def pair_cosine_similarity(x, y=None, eps=1e-8):
-    if(y == None):
-        n = x.norm(p=2, dim=1, keepdim=True)
-        return (x @ x.t()) / (n * n.t()).clamp(min=eps)
-    else:
-        n1 = x.norm(p=2, dim=1, keepdim=True)
-        n2 = y.norm(p=2, dim=1, keepdim=True)
-        return (x @ y.t()) / (n1 * n2.t()).clamp(min=eps)
-
-
-def nt_xent(x, y=None, t=0.5):
-    if(y != None):
-        x = pair_cosine_similarity(x, y)
-    else:
-        # print("device of x is {}".format(x.device))
-        x = pair_cosine_similarity(x)
-    x = torch.exp(x / t)
-    idx = torch.arange(x.size()[0])
-    # Put positive pairs on the diagonal
-    idx[::2] += 1
-    idx[1::2] -= 1
-    x = x[idx]
-    # subtract the similarity of 1 from the numerator
-    x = x.diag() / (x.sum(0) - torch.exp(torch.tensor(1 / t)))
-    return -torch.log(x).mean()
-
 def cvtPrevious2bnToCurrent2bn(state_dict):
     """
     :param state_dict: old state dict with bn and bn adv
@@ -333,72 +262,6 @@ def cvtPrevious2bnToCurrent2bn(state_dict):
         new_state_dict[newName] = value
     return new_state_dict
 
-
-class augStrengthScheduler(object):
-    """Computes and stores the average and current value"""
-
-    def __init__(self, aug_dif_scheduler_strength_range, aug_dif_scheduler_epoch_range, transGeneFun):
-        if ',' in aug_dif_scheduler_strength_range:
-            self.aug_dif_scheduler_strength_range = list(
-                map(float, aug_dif_scheduler_strength_range.split(',')))
-        else:
-            self.aug_dif_scheduler_strength_range = []
-
-        if ',' in aug_dif_scheduler_epoch_range:
-            self.aug_dif_scheduler_epoch_range = list(
-                map(int, aug_dif_scheduler_epoch_range.split(',')))
-        else:
-            self.aug_dif_scheduler_epoch_range = []
-        self.transGeneFun = transGeneFun
-        self.epoch = 0
-
-        assert (len(self.aug_dif_scheduler_strength_range) == 2 and len(self.aug_dif_scheduler_epoch_range) == 2) or \
-               (len(self.aug_dif_scheduler_strength_range) ==
-                0 and len(self.aug_dif_scheduler_epoch_range) == 0)
-
-    def step(self):
-        self.epoch += 1
-
-        if len(self.aug_dif_scheduler_strength_range) == 0 and len(self.aug_dif_scheduler_epoch_range) == 0:
-            return self.transGeneFun(1.0)
-        else:
-            startStrength, endStrength = self.aug_dif_scheduler_strength_range
-            startEpoch, endEpoch = self.aug_dif_scheduler_epoch_range
-            strength = min(max(0, self.epoch - startEpoch), endEpoch - startEpoch) / (
-                endEpoch - startEpoch) * (endStrength - startStrength) + startStrength
-            return self.transGeneFun(strength)
-
-# new_state_dict = cvtPrevious2bnToCurrent2bn(checkpoint['state_dict'])
-# model.load_state_dict(new_state_dict)
-
-def distance(i, j, imageSize, r):
-    dis = np.sqrt((i - imageSize / 2) ** 2 + (j - imageSize / 2) ** 2)
-    if dis < r:
-        return 1.0
-    else:
-        return 0
-
-def mask_radial(img, r):
-    rows, cols = img.shape
-    mask = torch.zeros((rows, cols))
-    for i in range(rows):
-        for j in range(cols):
-            mask[i, j] = distance(i, j, imageSize=rows, r=r)
-    return mask.cuda()
-
-def generate_high(Images, r):
-    # Image: bsxcxhxw, input batched images
-    # r: int, radius
-    mask = mask_radial(torch.zeros([Images.shape[2], Images.shape[3]]), r)
-    bs, c, h, w = Images.shape
-    x = Images.reshape([bs * c, h, w])
-    fd = torch.fft.fftshift(torch.fft.fftn(x, dim=(-2, -1)))
-    mask = mask.unsqueeze(0).repeat([bs * c, 1, 1])
-    fd = fd * (1.-mask)
-    fd = torch.fft.ifftn(torch.fft.ifftshift(fd), dim=(-2, -1))
-    fd = torch.real(fd)
-    fd = fd.reshape([bs, c, h, w])
-    return fd
 
 def trades_loss_dual(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, perturb_steps=10, beta=6.0, distance='l_inf', natural_mode='pgd'):
     batch_size = len(x_natural)
@@ -474,21 +337,24 @@ def cosine_annealing(step, total_steps, lr_max, lr_min, warmup_steps=0):
     return lr
 
 def setup_hyperparameter(args, mode):
-    if mode == 'SLF' or mode == 'ALF':
+    if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
         if args.dataset == 'cifar10':
-            args.lr = 0.01
+            args.lr = 0.1
         if args.dataset == 'cifar100':
-            args.lr = 0.005
+            args.lr = 0.05
         if args.dataset == 'stl10' and args.resize == 96:
             args.lr = 0.1
         if args.dataset == 'stl10' and args.resize == 32:
-            args.lr = 0.01
+            args.lr = 0.01 
+        args.decreasing_lr = '10,20'
+    elif (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE'):
+        args.decreasing_lr = '15,20'
+        args.lr = 0.1
     else:
+        args.decreasing_lr = '15,20'
         args.lr = 0.1
     return args
 
-import torchvision
-from torchvision import datasets, transforms
 def get_loader(args):
     # setup data loader
     transform_train = transforms.Compose([
@@ -539,12 +405,40 @@ def get_loader(args):
     return train_loader, vali_loader, test_loader, num_classes
 
 
-import torch.optim as optim
+# AdvCL
+def load_BN_checkpoint_AdvCL(state_dict):
+    new_state_dict = {}
+    new_state_dict_normal = {}
+    for k, v in state_dict.items():
+        if 'downsample' in k:
+            k = k.replace('downsample', 'shortcut')
+        if 'shortcut.bn.bn_list.0' in k:
+            k = k.replace('shortcut.bn.bn_list.0', 'downsample.0')
+            new_state_dict_normal[k] = v
+        elif 'shortcut.bn.bn_list.1' in k:
+            k = k.replace('shortcut.bn.bn_list.1', 'downsample.1')
+            new_state_dict[k] = v
+        elif '.bn_list.0' in k:
+            k = k.replace('.bn_list.0', '')
+            new_state_dict_normal[k] = v
+        elif '.bn_list.1' in k:
+            k = k.replace('.bn_list.1', '')
+            new_state_dict[k] = v
+        elif 'shortcut.conv' in k:
+            k = k.replace('shortcut.conv', 'downsample.0')
+            new_state_dict_normal[k] = v
+            new_state_dict[k] = v
+        else:
+            new_state_dict_normal[k] = v
+            new_state_dict[k] = v
+    return new_state_dict, new_state_dict_normal
+
 def get_model(args, num_classes, mode, log, device='cuda'):
     if args.dataset == 'stl10' and args.resize == 96:
         from models.resnet_stl import resnet18, resnet34, resnet50
     else:
         from models.resnet import resnet18, resnet34, resnet50
+
     if args.model == 'r18':
         model = resnet18(num_classes=num_classes).to(device)
     if args.model == 'r34':
@@ -579,12 +473,16 @@ def get_model(args, num_classes, mode, log, device='cuda'):
         checkpoint = torch.load(args.checkpoint, map_location="cpu")
         if 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
+        elif 'model' in checkpoint:
+            state_dict = checkpoint['model']
         else:
             state_dict = checkpoint
 
-        if mode == 'SLF' or mode == 'ALF':
+        if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
             state_dict = cvt_state_dict(
                 state_dict, args, num_classes=num_classes)
+        if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
+            state_dict, _ = load_BN_checkpoint_AdvCL(state_dict)
         elif not args.eval_only:
             # zero init fc
             state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
@@ -607,7 +505,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
 
     return model, optimizer, scheduler
 
-def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
+def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
     # model.train()
     if mode == 'SLF' or mode == 'ALF':
         model.eval()
@@ -638,7 +536,7 @@ def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
                                       alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
             output = model.eval()(data)
             loss = criterion(output, target)
-        if mode == 'AFF':
+        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
             loss = trades_loss_dual(model=model,
                                    x_natural=data,
                                    y=target,
@@ -647,6 +545,14 @@ def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
                                    epsilon=args.epsilon,
                                    perturb_steps=args.num_steps_train,
                                    natural_mode='normal')
+        if mode == 'AFF' and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE'):
+            loss = trades_loss(model=model,
+                                   x_natural=data,
+                                   y=target,
+                                   optimizer=optimizer,
+                                   step_size=args.step_size,
+                                   epsilon=args.epsilon,
+                                   perturb_steps=args.num_steps_train)
 
         loss.backward()
         optimizer.step()
@@ -661,16 +567,17 @@ def train(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
                      100. * batch_idx / len(train_loader), loss.item(), dataTimeAve.avg, totalTimeAve.avg))
 
 
-def train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir):
+def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir):
     for epoch in range(args.start_epoch + 1, args.epochs + 1):
         # adjust learning rate for SGD
         log.info("current lr is {}".format(
             optimizer.state_dict()['param_groups'][0]['lr']))
 
         # linear classification
-        train(args, model, device, train_loader, optimizer, epoch, log, mode)
+        train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
         scheduler.step()
-
+        nat_acc = eval_test_nat(model, test_loader, device, advFlag=None)
+        print(nat_acc)
          # evaluation
         if (not args.test_frequency == 0) and (epoch % args.test_frequency == 1 or args.test_frequency == 1):
             print('================================================================')
@@ -687,9 +594,15 @@ def train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mod
             print('================================================================')
 
         # save checkpoint
+        if args.pretraining == 'ACL' or args.pretraining == 'DynACL' and mode == 'AFF':
+            state_dict = model.state_dict()
+            state_dict = cvt_state_dict(state_dict, args)
+        else:
+            state_dict = model.state_dict()
+
         torch.save({
             'epoch': epoch,
-            'state_dict': model.state_dict(),
+            'state_dict': state_dict,
             'optim': optimizer.state_dict(),
         }, os.path.join(model_dir, '{}_model_finetune.pt'.format(mode)))
 
@@ -736,11 +649,6 @@ def cvt_state_dict(state_dict, args, num_classes):
 
     return state_dict_new
 
-
-
-from robustbench.data import load_cifar10c,load_cifar100c
-# from robustbench.utils import clean_accuracy
-import math
 def clean_accuracy(model: nn.Module,
                    x: torch.Tensor,
                    y: torch.Tensor,
@@ -809,7 +717,6 @@ def eval_test_OOD(model, test_loader, log, device, advFlag='pgd'):
         acc_list.append(acc_sum/count)
     return acc_list, np.mean(acc_list)
 
-from autoattack import AutoAttack
 def runAA(model, test_loader, log_path, advFlag='pgd'):
     model.eval()
     acc = 0.

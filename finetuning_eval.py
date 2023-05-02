@@ -1,11 +1,9 @@
 # The code is modified from the code of DynACL <>.
 import os
 import argparse
-import torch
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import numpy as np
-from utils import train_loop, get_loader, get_model,setup_hyperparameter, eval_test_nat, runAA, logger, eval_test_OOD
+from utils import train, get_loader, get_model,setup_hyperparameter, eval_test_nat, runAA, logger, eval_test_OOD
 
 
 parser = argparse.ArgumentParser(
@@ -108,6 +106,8 @@ if args.eval_only:
     result_log.info('test checkpoint: {}'.format(args.checkpoint))
 
     mode = 'eval'
+    advFlag = None
+    
     train_loader, vali_loader, test_loader, num_classes = get_loader(args)
     model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
     model.eval()
@@ -146,77 +146,88 @@ else:
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     result_log = logger(os.path.join(result_dir))
-    result_log.info('test checkpoint: {}'.format(args.checkpoint))
+    result_log.info('Finetuning checkpoint: {}'.format(args.checkpoint))
 
     if args.mode == 'Ensemble' or args.mode == 'SLF':
         mode = 'SLF'
-        log.info('Finetuning mode: SLF')
+        advFlag = None
+        log.info('Finetuning mode: {}'.format(mode))
         # SLF finetuning
         args = setup_hyperparameter(args, mode)
+
         train_loader, vali_loader, test_loader, num_classes = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
+        train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
         
         # eval natural accuracy
-        SLF_nat_acc = eval_test_nat(model, test_loader, device, advFlag=None)
+        SLF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, SLF_nat_acc * 100))
 
         # eval robustness against adversarial attacks
         if args.eval_AA:
-            SLF_AA_acc = runAA(model, test_loader, AA_log, advFlag=None)
+            SLF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
             result_log.info('{} robust acc: {:.2f}'.format(mode, SLF_AA_acc * 100))
 
         # eval robustness againt common corruptions
         if args.eval_OOD:
-            SLF_ood_acc_list, SLF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag=None)
+            SLF_ood_acc_list, SLF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, SLF_ood_acc_mean * 100))
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, SLF_ood_acc_list[i] * 100))
 
     if args.mode == 'Ensemble' or args.mode == 'ALF':
         mode = 'ALF'
+        log.info('Finetuning mode: {}'.format(mode))
+
+        advFlag = None
         args = setup_hyperparameter(args, mode)
+
         train_loader, vali_loader, test_loader, num_classes = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
+        train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
 
         # eval natural accuracy
-        ALF_nat_acc = eval_test_nat(model, test_loader, device, advFlag=None)
+        ALF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, ALF_nat_acc * 100))
 
         # eval robustness against adversarial attacks
         if args.eval_AA:
-            ALF_AA_acc = runAA(model, test_loader, AA_log, advFlag=None)
+            ALF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
             result_log.info('{} robust acc: {:.2f}'.format(mode, ALF_AA_acc * 100))
 
         # eval robustness againt common corruptions
         if args.eval_OOD:
-            ALF_ood_acc_list, ALF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag=None)
+            ALF_ood_acc_list, ALF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, ALF_ood_acc_mean * 100))
             for i in range(5):
                 log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, ALF_ood_acc_list[i] * 100))
 
     if args.mode == 'Ensemble' or args.mode == 'AFF':
         mode = 'AFF'
+        log.info('Finetuning mode: {}'.format(mode))
+
         args = setup_hyperparameter(args, mode)
+        if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
+            advFlag = None
+        else:
+            advFlag = 'pgd'
+
         train_loader, vali_loader, test_loader, num_classes = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
+        train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
 
         # eval natural accuracy
-        AFF_nat_acc = eval_test_nat(model, test_loader, device, advFlag='pgd')
-        result_log.info('{} standard acc: {:.2f}'.format(mode, AFF_nat_acc * 100))
-        AFF_nat_acc = eval_test_nat(model, test_loader, device, advFlag=None)
+        AFF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, AFF_nat_acc * 100))
 
         # eval robustness against adversarial attacks
         if args.eval_AA:
-            AFF_AA_acc = runAA(model, test_loader, AA_log, advFlag='pgd')
+            AFF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
             result_log.info('{} robust acc: {:.2f}'.format(mode, AFF_AA_acc * 100))
 
         # eval robustness againt common corruptions
         if args.eval_OOD:
-            AFF_ood_acc_list, AFF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag='pgd')
+            AFF_ood_acc_list, AFF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, AFF_ood_acc_mean * 100))
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, AFF_ood_acc_list[i] * 100))
