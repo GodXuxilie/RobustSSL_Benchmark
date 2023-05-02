@@ -1,0 +1,14 @@
+__pycache__/
+
+
+wandb/
+code/
+trained_models/
+ckeckpoint/
+logger/
+data/
+
+checkpoint/
+
+TeacherCKPT
+
