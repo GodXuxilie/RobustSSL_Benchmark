@@ -32,7 +32,7 @@ We released all the pre-trained weights in [this Dropbox directory](https://www.
 | CIFAR-100 | [link<sup>*</sup>](https://www.dropbox.com/s/02hhe679zo6c7da/ACL_DS_CIFAR100.pt?dl=0) | [link]() | [link]() | - | [link<sup>*</sup>](https://www.dropbox.com/s/mabnrcp7zahp6ke/DynACL_CIFAR100.pt?dl=0) |
 | STL10 | [link](https://www.dropbox.com/s/6jenhn0bpe5ifle/ACL_DS_STL10.pt?dl=0) | - | - | - | [link<sup>*</sup>](https://www.dropbox.com/s/ydd6lbracw73019/DynACL_STL10.pt?dl=0) |
 
-```*``` denotes the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
+Acknowledgement: ```*``` denotes the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
 
 More pre-trained weights will be coming soon!
 
