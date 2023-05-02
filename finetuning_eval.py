@@ -95,10 +95,16 @@ if args.eval_only:
         os.makedirs(common_corrup_dir)
     common_corrup_log = logger(os.path.join(common_corrup_dir))
 
-    result_log = 'checkpoints/' + args.experiment + '/result/'
-    if not os.path.exists(result_log):
-        os.makedirs(result_log)
-    result_log = logger(os.path.join(result_log))
+    robust_dir = 'checkpoints/' + args.experiment + '/robust'
+    if not os.path.exists(robust_dir):
+        os.makedirs(robust_dir)
+    robust_log = logger(os.path.join(robust_dir))
+    AA_log = robust_dir + '/AA_details.txt'
+
+    result_dir = 'checkpoints/' + args.experiment + '/result/'
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    result_log = logger(os.path.join(result_dir))
     result_log.info('test checkpoint: {}'.format(args.checkpoint))
 
     mode = 'eval'
@@ -112,7 +118,6 @@ if args.eval_only:
 
     # eval robustness against adversarial attacks
     if args.eval_AA:
-        AA_log = 'checkpoints/' + args.experiment + '/result/AA_details.txt'
         AA_acc = runAA(model, test_loader, AA_log, advFlag=None)
         log.info('robust acc: {:.2f}'.format(AA_acc * 100))
 
@@ -126,21 +131,28 @@ if args.eval_only:
             log.info('corruption severity-{} acc: {:.2f}'.format(i+1, ood_acc_list[i] * 100))
     
 else:
-    result_log = 'checkpoints/' + args.experiment + '/result/'
-    if not os.path.exists(result_log):
-        os.makedirs(result_log)
-    result_log = logger(os.path.join(result_log))
-
     common_corrup_dir = 'checkpoints/' + args.experiment + '/common_corruptions'
     if not os.path.exists(common_corrup_dir):
         os.makedirs(common_corrup_dir)
     common_corrup_log = logger(os.path.join(common_corrup_dir))
 
+    robust_dir = 'checkpoints/' + args.experiment + '/robust'
+    if not os.path.exists(robust_dir):
+        os.makedirs(robust_dir)
+    robust_log = logger(os.path.join(robust_dir))
+    AA_log = robust_dir + '/AA_details.txt'
+
+    result_dir = 'checkpoints/' + args.experiment + '/result/'
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    result_log = logger(os.path.join(result_dir))
+    result_log.info('test checkpoint: {}'.format(args.checkpoint))
+
     if args.mode == 'Ensemble' or args.mode == 'SLF':
         mode = 'SLF'
         log.info('Finetuning mode: SLF')
         # SLF finetuning
-        args = setup_hyperparameter(args)
+        args = setup_hyperparameter(args, mode)
         train_loader, vali_loader, test_loader, num_classes = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
@@ -151,7 +163,6 @@ else:
 
         # eval robustness against adversarial attacks
         if args.eval_AA:
-            AA_log = 'checkpoints/' + args.experiment + '/result/AA_details.txt'
             SLF_AA_acc = runAA(model, test_loader, AA_log, advFlag=None)
             result_log.info('{} robust acc: {:.2f}'.format(mode, SLF_AA_acc * 100))
 
@@ -164,7 +175,7 @@ else:
 
     if args.mode == 'Ensemble' or args.mode == 'ALF':
         mode = 'ALF'
-        args = setup_hyperparameter(args)
+        args = setup_hyperparameter(args, mode)
         train_loader, vali_loader, test_loader, num_classes = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
@@ -175,7 +186,6 @@ else:
 
         # eval robustness against adversarial attacks
         if args.eval_AA:
-            AA_log = 'checkpoints/' + args.experiment + '/result/AA_details.txt'
             ALF_AA_acc = runAA(model, test_loader, AA_log, advFlag=None)
             result_log.info('{} robust acc: {:.2f}'.format(mode, ALF_AA_acc * 100))
 
@@ -188,7 +198,7 @@ else:
 
     if args.mode == 'Ensemble' or args.mode == 'AFF':
         mode = 'AFF'
-        args = setup_hyperparameter(args)
+        args = setup_hyperparameter(args, mode)
         train_loader, vali_loader, test_loader, num_classes = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train_loop(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
@@ -201,7 +211,6 @@ else:
 
         # eval robustness against adversarial attacks
         if args.eval_AA:
-            AA_log = 'checkpoints/' + args.experiment + '/result/AA_details.txt'
             AFF_AA_acc = runAA(model, test_loader, AA_log, advFlag='pgd')
             result_log.info('{} robust acc: {:.2f}'.format(mode, AFF_AA_acc * 100))
 

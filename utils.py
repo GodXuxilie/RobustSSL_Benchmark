@@ -473,15 +473,18 @@ def cosine_annealing(step, total_steps, lr_max, lr_min, warmup_steps=0):
 
     return lr
 
-def setup_hyperparameter(args):
-    if args.dataset == 'cifar10':
-        args.lr = 0.01
-    if args.dataset == 'cifar100':
-        args.lr = 0.005
-    if args.dataset == 'stl10' and args.resize == 96:
+def setup_hyperparameter(args, mode):
+    if mode == 'SLF' or mode == 'ALF':
+        if args.dataset == 'cifar10':
+            args.lr = 0.01
+        if args.dataset == 'cifar100':
+            args.lr = 0.005
+        if args.dataset == 'stl10' and args.resize == 96:
+            args.lr = 0.1
+        if args.dataset == 'stl10' and args.resize == 32:
+            args.lr = 0.01
+    else:
         args.lr = 0.1
-    if args.dataset == 'stl10' and args.resize == 32:
-        args.lr = 0.01
     return args
 
 import torchvision
@@ -811,7 +814,6 @@ def runAA(model, test_loader, log_path, advFlag='pgd'):
     model.eval()
     acc = 0.
     adversary = AutoAttack(model, norm='Linf', eps=8/255, version='standard', log_path=log_path)
-    adversary.attacks_to_run=['apgd-ce']
     for images, labels in test_loader:
         images = images.cuda()
         labels = labels.cuda()
