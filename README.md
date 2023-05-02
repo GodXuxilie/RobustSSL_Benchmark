@@ -18,8 +18,8 @@ python finetuning_eval.py   --gpu GPU_id \
 + Python 3.8
 + Pytorch 1.13
 + CUDA 11.6
-+ AutoAttack
-+ robustbench
++ [AutoAttack](https://github.com/fra31/auto-attack) (Install AutoAttack via ```pip install git+https://github.com/fra31/auto-attack```)
++ [robustbench](https://robustbench.github.io/) (Install robustbench via ```pip install git+https://github.com/RobustBench/robustbench.git```)
 
 
 # ACL pre-training
