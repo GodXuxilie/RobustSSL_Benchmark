@@ -64,10 +64,10 @@ parser.add_argument('--cvt_state_dict', action='store_true',
                     help='Need to be specified if pseudo-label finetune is not implemented')
 
 parser.add_argument('--bnNameCnt', default=1, type=int)
-parser.add_argument('--mode', type=str, default='SLF',
+parser.add_argument('--mode', type=str, default='Ensemble',
                     help='Ensemble, SLF, ALF, AFF')
 parser.add_argument('--pretraining', type=str, default='ACL',
-                    help='Ensemble, SLF, ALF, AFF')
+                    help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL')
 
 parser.add_argument('--test_frequency', type=int, default=0,
                     help='validation frequency during finetuning, 0 for no evaluation')   
@@ -107,8 +107,8 @@ if args.eval_only:
 
     mode = 'eval'
     advFlag = None
-    
-    train_loader, vali_loader, test_loader, num_classes = get_loader(args)
+
+    train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
     model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
     model.eval()
 
@@ -155,7 +155,7 @@ else:
         # SLF finetuning
         args = setup_hyperparameter(args, mode)
 
-        train_loader, vali_loader, test_loader, num_classes = get_loader(args)
+        train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
         
@@ -182,7 +182,7 @@ else:
         advFlag = None
         args = setup_hyperparameter(args, mode)
 
-        train_loader, vali_loader, test_loader, num_classes = get_loader(args)
+        train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
 
@@ -212,7 +212,7 @@ else:
         else:
             advFlag = 'pgd'
 
-        train_loader, vali_loader, test_loader, num_classes = get_loader(args)
+        train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
 

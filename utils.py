@@ -15,7 +15,6 @@ import torch.optim as optim
 from autoattack import AutoAttack
 from robustbench.data import load_cifar10c,load_cifar100c
 import math
-from models.resnet import resnet18 as resnet18_singleBN
 
 def normalize_fn(tensor, mean, std):
     """Differentiable version of torchvision.functional.normalize"""
@@ -339,7 +338,7 @@ def cosine_annealing(step, total_steps, lr_max, lr_min, warmup_steps=0):
 def setup_hyperparameter(args, mode):
     if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
         if args.dataset == 'cifar10':
-            args.lr = 0.1
+            args.lr = 0.01
         if args.dataset == 'cifar100':
             args.lr = 0.05
         if args.dataset == 'stl10' and args.resize == 96:
@@ -347,12 +346,16 @@ def setup_hyperparameter(args, mode):
         if args.dataset == 'stl10' and args.resize == 32:
             args.lr = 0.01 
         args.decreasing_lr = '10,20'
-    elif (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE'):
+    elif (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE' or args.pretraining == 'DeACL'):
+        args.decreasing_lr = '15,20'
+        args.lr = 0.01
+    elif (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE' or args.pretraining == 'DeACL'):
         args.decreasing_lr = '15,20'
         args.lr = 0.1
     else:
         args.decreasing_lr = '15,20'
         args.lr = 0.1
+
     return args
 
 def get_loader(args):
@@ -376,6 +379,7 @@ def get_loader(args):
         testset = torchvision.datasets.CIFAR10(
             root=args.data, train=False, download=True, transform=transform_test)
         num_classes = 10
+        args.num_classes = 10
     elif args.dataset == 'cifar100':
         train_datasets = torchvision.datasets.CIFAR100(
             root=args.data, train=True, download=True, transform=transform_train)
@@ -384,6 +388,7 @@ def get_loader(args):
         testset = torchvision.datasets.CIFAR100(
             root=args.data, train=False, download=True, transform=transform_test)
         num_classes = 100
+        args.num_classes = 100
     elif args.dataset == 'stl10':
         train_datasets = torchvision.datasets.STL10(
             root=args.data, split='train', transform=transform_train, download=True)
@@ -392,6 +397,7 @@ def get_loader(args):
         testset = datasets.STL10(
             root=args.data, split='test', transform=transform_test, download=True)
         num_classes = 10     
+        args.num_classes = 10
     else:
         print("dataset {} is not supported".format(args.dataset))
         assert False
@@ -402,21 +408,21 @@ def get_loader(args):
 
     test_loader = torch.utils.data.DataLoader( testset, batch_size=args.test_batch_size, shuffle=True)
 
-    return train_loader, vali_loader, test_loader, num_classes
+    return train_loader, vali_loader, test_loader, num_classes, args
 
 
-# AdvCL
+# AdvCL and A-InfoNCE
 def load_BN_checkpoint_AdvCL(state_dict):
     new_state_dict = {}
     new_state_dict_normal = {}
     for k, v in state_dict.items():
-        if 'downsample' in k:
-            k = k.replace('downsample', 'shortcut')
-        if 'shortcut.bn.bn_list.0' in k:
-            k = k.replace('shortcut.bn.bn_list.0', 'downsample.0')
+        # if 'downsample' in k:
+            # k = k.replace('downsample', 'shortcut')
+        if 'downsample.bn.bn_list.0' in k:
+            k = k.replace('downsample.bn.bn_list.0', 'downsample.0')
             new_state_dict_normal[k] = v
-        elif 'shortcut.bn.bn_list.1' in k:
-            k = k.replace('shortcut.bn.bn_list.1', 'downsample.1')
+        elif 'downsample.bn.bn_list.1' in k:
+            k = k.replace('downsample.bn.bn_list.1', 'downsample.1')
             new_state_dict[k] = v
         elif '.bn_list.0' in k:
             k = k.replace('.bn_list.0', '')
@@ -424,28 +430,61 @@ def load_BN_checkpoint_AdvCL(state_dict):
         elif '.bn_list.1' in k:
             k = k.replace('.bn_list.1', '')
             new_state_dict[k] = v
-        elif 'shortcut.conv' in k:
-            k = k.replace('shortcut.conv', 'downsample.0')
+        elif 'downsample.conv' in k:
+            k = k.replace('downsample.conv', 'downsample.0')
             new_state_dict_normal[k] = v
             new_state_dict[k] = v
+        # elif 'downsample.bn' in k:
+        #     k = k.replace('downsample.bn', 'downsample.1')
+        #     new_state_dict_normal[k] = v
+        #     new_state_dict[k] = v
         else:
             new_state_dict_normal[k] = v
             new_state_dict[k] = v
     return new_state_dict, new_state_dict_normal
+
+
+# DeACL
+def load_BN_checkpoint_DeACL(state_dict):
+    new_state_dict = {}
+    new_state_dict_normal = {}
+    for k, v in state_dict.items():
+        if 'backbone.' in k:
+            k = k.replace('backbone.', '')
+        new_state_dict_normal[k] = v
+        new_state_dict[k] = v
+    return new_state_dict, new_state_dict_normal
+
 
 def get_model(args, num_classes, mode, log, device='cuda'):
     if args.dataset == 'stl10' and args.resize == 96:
         from models.resnet_stl import resnet18, resnet34, resnet50
     else:
         from models.resnet import resnet18, resnet34, resnet50
+        
+    if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
+        do_normalize = 0
+    else:
+        do_normalize = 1
 
     if args.model == 'r18':
-        model = resnet18(num_classes=num_classes).to(device)
+        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
+            bn_names = ['normal', 'pgd']
+            from models.resnet_multi_bn import resnet18
+            model = resnet18(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        else:
+            model = resnet18(num_classes=num_classes, do_normalize=do_normalize).to(device)
     if args.model == 'r34':
-        model = resnet34(num_classes=num_classes).to(device)
+        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
+            bn_names = ['normal', 'pgd']
+            from models.resnet_multi_bn import resnet34
+            model = resnet34(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        else:
+            model = resnet34(num_classes=num_classes).to(device)
     if args.model == 'r50':
         model = resnet50(num_classes=num_classes).to(device)
         model = torch.nn.DataParallel(model)
+        
     if mode == 'ALF' or mode == 'SLF':
         for name, param in model.named_parameters():
             if args.model == 'r50':
@@ -456,7 +495,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
                     param.requires_grad = False
         parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
         assert len(parameters) == 2  # fc.weight, fc.bias
-    if mode == 'AFF':
+    elif mode == 'AFF':
         parameters = model.parameters()
 
 
@@ -477,17 +516,22 @@ def get_model(args, num_classes, mode, log, device='cuda'):
             state_dict = checkpoint['model']
         else:
             state_dict = checkpoint
+        # print(state_dict.keys())
 
         if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
             state_dict = cvt_state_dict(
                 state_dict, args, num_classes=num_classes)
         if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
             state_dict, _ = load_BN_checkpoint_AdvCL(state_dict)
+        if args.pretraining == 'DeACL':
+            state_dict, _ = load_BN_checkpoint_DeACL(state_dict)
         elif not args.eval_only:
             # zero init fc
             state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
             state_dict['fc.bias'] = torch.zeros(num_classes).to(device)
 
+        # print(state_dict.keys())
+        # print(model.state_dict().keys())
         model.load_state_dict(state_dict, strict=False)
         log.info('read checkpoint {}'.format(args.checkpoint))
 
@@ -576,9 +620,8 @@ def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, de
         # linear classification
         train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
         scheduler.step()
-        nat_acc = eval_test_nat(model, test_loader, device, advFlag=None)
-        print(nat_acc)
-         # evaluation
+        eval_test_nat(model, test_loader, device, advFlag=None)
+        # evaluation
         if (not args.test_frequency == 0) and (epoch % args.test_frequency == 1 or args.test_frequency == 1):
             print('================================================================')
             eval_test(model, device, test_loader, log)
@@ -594,9 +637,9 @@ def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, de
             print('================================================================')
 
         # save checkpoint
-        if args.pretraining == 'ACL' or args.pretraining == 'DynACL' and mode == 'AFF':
+        if (args.pretraining == 'ACL' or args.pretraining == 'DynACL') and mode == 'AFF':
             state_dict = model.state_dict()
-            state_dict = cvt_state_dict(state_dict, args)
+            state_dict = cvt_state_dict(state_dict, args, num_classes=args.num_classes)
         else:
             state_dict = model.state_dict()
 
