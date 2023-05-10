@@ -39,7 +39,7 @@ Alternatively, you can copy the address of the ```link``` in the following table
 
 # Evaluation Procedure and Metrics
 
-We first conduct finetuning, including standard linear finetuning (**SLF**), adversarial linear finetuning (**ALF**), and adversarial full finetuning (**AFF**) on the downsteam task using the pre-trained models. 
+We first conduct finetuning, including standard linear finetuning (**SLF**), adversarial linear finetuning (**ALF**), and adversarial full finetuning (**AFF**), on the downsteam task using the pre-trained models. 
 
 Then, we evaluate the performance of the finetuned model on the downstream task. We use the following evaluation metrics:
 + **SA** refers to the standard test accuracy evaluated on the *natural test data*.
