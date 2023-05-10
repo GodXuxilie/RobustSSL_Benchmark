@@ -928,7 +928,7 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
 
-    elif args.pretraining == 'DynACL_IR_plus':
+    elif args.pretraining == 'DynACL++_IR':
         if mode == 'SLF':
             if args.dataset == 'cifar10':
                 args.lr = 0.01
