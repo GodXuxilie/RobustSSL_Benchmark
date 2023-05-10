@@ -9,7 +9,7 @@ python finetuning_eval.py   --gpu GPU_id \
                             --model type_of_backbone_network \
                             --checkpoint path_of_pretrained_checkpoint \ 
                             --dataset downstream_dataset: [cifar10, cifar100, stl10] \ 
-                            --mode finetuning_mode: [Ensemble, SLF, ALF, AFF] \
+                            --mode finetuning_mode: [ALL, SLF, ALF, AFF] \
                             --eval-AA \
                             --eval-OOD 
 ```
@@ -39,7 +39,7 @@ Alternatively, you can copy the address of the ```link``` in the following table
 
 # Evaluation Procedure and Metrics
 
-We first conduct finetuning, including standard linear finetuning (SLF), adversarial linear finetuning (ALF), and adversarial full finetuning (AFF) on the downsteam task using the pre-trained models and 
+We first conduct finetuning, including standard linear finetuning (**SLF**), adversarial linear finetuning (**ALF**), and adversarial full finetuning (**AFF**) on the downsteam task using the pre-trained models. 
 
 Then, we evaluate the performance of the finetuned model on the downstream task. We use the following 3 types of evaluation metrics:
 + **SA** refers to the standard test accuracy evaluated on the *natural test data*.

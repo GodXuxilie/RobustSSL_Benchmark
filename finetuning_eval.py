@@ -64,8 +64,8 @@ parser.add_argument('--cvt_state_dict', action='store_true',
                     help='Need to be specified if pseudo-label finetune is not implemented')
 
 parser.add_argument('--bnNameCnt', default=1, type=int)
-parser.add_argument('--mode', type=str, default='Ensemble',
-                    help='Ensemble, SLF, ALF, AFF')
+parser.add_argument('--mode', type=str, default='ALL',
+                    help='ALL, SLF, ALF, AFF')
 parser.add_argument('--pretraining', type=str, default='ACL',
                     help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL')
 
@@ -148,7 +148,7 @@ else:
     result_log = logger(os.path.join(result_dir))
     result_log.info('Finetuning checkpoint: {}'.format(args.checkpoint))
 
-    if args.mode == 'Ensemble' or args.mode == 'SLF':
+    if args.mode == 'ALL' or args.mode == 'SLF':
         mode = 'SLF'
         advFlag = None
         log.info('Finetuning mode: {}'.format(mode))
@@ -176,7 +176,7 @@ else:
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, SLF_ood_acc_list[i] * 100))
 
-    if args.mode == 'Ensemble' or args.mode == 'ALF':
+    if args.mode == 'ALL' or args.mode == 'ALF':
         mode = 'ALF'
         log.info('Finetuning mode: {}'.format(mode))
 
@@ -203,7 +203,7 @@ else:
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, ALF_ood_acc_list[i] * 100))
 
-    if args.mode == 'Ensemble' or args.mode == 'AFF':
+    if args.mode == 'ALL' or args.mode == 'AFF':
         mode = 'AFF'
         log.info('Finetuning mode: {}'.format(mode))
 
@@ -230,7 +230,7 @@ else:
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, AFF_ood_acc_list[i] * 100))
 
-    if args.mode == 'Ensemble':
+    if args.mode == 'ALL':
         result_log.info('mean robust accuracy: {:.2f}'.format(np.mean([SLF_AA_acc * 100, ALF_AA_acc * 100, AFF_AA_acc * 100])))
         if args.eval_AA:
             result_log.info('mean standard accuracy: {:.2f}'.format(np.mean([SLF_nat_acc * 100, ALF_nat_acc * 100, AFF_nat_acc * 100])))
