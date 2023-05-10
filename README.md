@@ -37,8 +37,14 @@ Alternatively, you can copy the address of the ```link``` in the following table
 
 **Acknowledgements**: ```*``` denotes the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
 
-More pre-trained weights will be coming soon!
+# Evaluation Procedure and Metrics
 
+We first conduct finetuning, including standard linear finetuning (SLF), adversarial linear finetuning (ALF), and adversarial full finetuning (AFF) on the downsteam task using the pre-trained models and 
+
+Then, we evaluate the performance of the finetuned model on the downstream task. We use the following 3 types of evaluation metrics:
++ **SA** refers to the standard test accuracy evaluated on the natural test data.
++ **RA** refers to the robust test accuracy evaluated on the adversarial test data generated via the standard version of AutoAttack.
++ **CA** refers to the mean test accuracy of the test data under common corruptions with corruption severity ranging \{1,2,3,4,5\}.
 
 # Performance Benchmarking Across Tasks
 Here, robust pre-training and finetuning are conducted on the same datasets. 
