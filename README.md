@@ -136,4 +136,9 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 
 # Acknowledgements
 
-The pre-training codes in the directory of ```ACL_Methods``` are provided by [ACL](https://github.com/VITA-Group/Adversarial-Contrastive-Learning), [RoCL](https://github.com/Kim-Minseon/RoCL), [AdvCL](https://github.com/LijieFan/AdvCL), [A-InfoNCE](https://github.com/yqy2001/A-InfoNCE), [DeACL](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e), and [DynACL](https://github.com/PKU-ML/DYNACL). 
+The pre-training code in the directory of ```ACL_Methods``` are provided by [ACL](https://github.com/VITA-Group/Adversarial-Contrastive-Learning), [RoCL](https://github.com/Kim-Minseon/RoCL), [AdvCL](https://github.com/LijieFan/AdvCL), [A-InfoNCE](https://github.com/yqy2001/A-InfoNCE), [DeACL](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e), and [DynACL](https://github.com/PKU-ML/DYNACL). 
+
+# Contact
+
+Please contact xuxilie@comp.nus.edu.sg and jingfeng.zhang@riken.jp if you have any question on the codes.
+
