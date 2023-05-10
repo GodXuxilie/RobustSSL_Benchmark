@@ -67,37 +67,23 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 
 # References
 ```
-@article{ACL2020,
-    title = {Robust Pre-Training by Adversarial Contrastive Learning},
-    author = {Ziyu Jiang and Tianlong Chen and Ting Chen and Zhangyang Wang},
-    booktitle = {Advances in Neural Information Processing Systems 34},
-    year = {2020}
-    }
 
-@inproceedings{kim2020adversarial,
-  title={Adversarial Self-Supervised Contrastive Learning},
-  author={Minseon Kim and Jihoon Tack and Sung Ju Hwang},
-  booktitle = {Advances in Neural Information Processing Systems},
-  year={2020}
+@article{xu2023AIR,
+  title={Enhancing Adversarial Contrastive Learning via Adversarial Invariant Regularization},
+  author={Xu, Xilie and Zhang, Jingfeng and Liu, Feng and Sugiyama, Masashi and Kankanhalli, Mohan},
+  journal={arXiv preprint arXiv:2305.00374},
+  year={2023}
 }
 
-@inproceedings{fan2021does,
-  title={When Does Contrastive Learning Preserve Adversarial Robustness from Pretraining to Finetuning?},
-  author={Lijie Fan, Sijia Liu, Pin-Yu Chen, Gaoyuan Zhang and Chuang Gan},
-  booktitle={Conference on Neural Information Processing Systems (NeurIPS)},
-  year={2021}
+@inproceedings{luo2023DynACL,
+    title = {Rethinking the Effect of Data Augmentation in Adversarial Contrastive Learning},
+    author = {Luo, Rundong and Wang, Yifei and Wang, Yisen},
+    booktitle = {ICLR},
+    year = {2023},
 }
 
-@inproceedings{yu2022adversarial,
-  title={Adversarial Contrastive Learning via Asymmetric InfoNCE},
-  author={Yu, Qiying and Lou, Jieming and Zhan, Xianyuan and Li, Qizhang and Zuo, Wangmeng and Liu, Yang and Liu, Jingjing},
-  booktitle={European Conference on Computer Vision},
-  pages={53--69},
-  year={2022},
-  organization={Springer}
-}
 
-@inproceedings{zhang2022decoupled,
+@inproceedings{zhang2022DeACL,
   title={Decoupled Adversarial Contrastive Learning for Self-supervised Adversarial Robustness},
   author={Zhang, Chaoning and Zhang, Kang and Zhang, Chenshuang and Niu, Axi and Feng, Jiu and Yoo, Chang D and Kweon, In So},
   booktitle={ECCV 2022},
@@ -106,11 +92,35 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   organization={Springer}
 }
 
-@inproceedings{DynACL,
-    title = {Rethinking the Effect of Data Augmentation in Adversarial Contrastive Learning},
-    author = {Luo, Rundong and Wang, Yifei and Wang, Yisen},
-    booktitle = {ICLR},
-    year = {2023},
+
+@inproceedings{yu2022AInfoNCE,
+  title={Adversarial Contrastive Learning via Asymmetric InfoNCE},
+  author={Yu, Qiying and Lou, Jieming and Zhan, Xianyuan and Li, Qizhang and Zuo, Wangmeng and Liu, Yang and Liu, Jingjing},
+  booktitle={European Conference on Computer Vision},
+  pages={53--69},
+  year={2022},
+  organization={Springer}
+}
+
+@inproceedings{fan2021AdvCL,
+  title={When Does Contrastive Learning Preserve Adversarial Robustness from Pretraining to Finetuning?},
+  author={Lijie Fan, Sijia Liu, Pin-Yu Chen, Gaoyuan Zhang and Chuang Gan},
+  booktitle={Conference on Neural Information Processing Systems (NeurIPS)},
+  year={2021}
+}
+
+@article{ACL2020,
+    title = {Robust Pre-Training by Adversarial Contrastive Learning},
+    author = {Ziyu Jiang and Tianlong Chen and Ting Chen and Zhangyang Wang},
+    booktitle = {Advances in Neural Information Processing Systems 34},
+    year = {2020}
+    }
+
+@inproceedings{kim2020RoCL,
+  title={Adversarial Self-Supervised Contrastive Learning},
+  author={Minseon Kim and Jihoon Tack and Sung Ju Hwang},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year={2020}
 }
 
 ```
