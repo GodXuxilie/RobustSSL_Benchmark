@@ -35,7 +35,7 @@ Alternatively, you can copy the address of the ```link``` in the following table
 | STL10 | [link](https://www.dropbox.com/s/6jenhn0bpe5ifle/ACL_DS_STL10.pt?dl=0) | - | - | - | [link<sup>*</sup>](https://www.dropbox.com/s/ydd6lbracw73019/DynACL_STL10.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/gjxlu7woupqjmr2/DynACL%2B%2B_STL10.pt?dl=0) | [link](https://www.dropbox.com/s/0swf31xq3d1rahn/DynACL_IR_STL10.pt?dl=0) | [link](https://www.dropbox.com/s/vmppj5nhk0rylx6/DyACL_IR_plus_STL10.pt?dl=0) |
 
 
-**Acknowledgements**: ```*``` denotes the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
+**Acknowledgements**: The superscript ```*``` denotes that the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
 
 # Evaluation Procedure and Metrics
 
