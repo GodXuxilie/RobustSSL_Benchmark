@@ -4,8 +4,8 @@ This repository provides ***a unified finetuning and evaluation tool*** to evalu
 
 ```
 python finetuning_eval.py   --gpu GPU_id \
-                            --experiment path_of_log_to_be_saved \
-                            --pretraining  pre_training_method \
+                            --experiment path_of_directory_for_saving_log \
+                            --pretraining  pre_training_method [ACL, AdvCL, A-InfoNCE, DeACL, DynACL, DynACL_IR, DynACL_IR_plus] \
                             --model type_of_backbone_network \
                             --checkpoint path_of_pretrained_checkpoint \ 
                             --dataset downstream_dataset: [cifar10, cifar100, stl10] \ 
