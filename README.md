@@ -77,7 +77,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
 # References
 ```
 
-@article{xu2023AIR,
+@article{xu2023IR,
   title={Enhancing Adversarial Contrastive Learning via Adversarial Invariant Regularization},
   author={Xu, Xilie and Zhang, Jingfeng and Liu, Feng and Sugiyama, Masashi and Kankanhalli, Mohan},
   journal={arXiv preprint arXiv:2305.00374},
@@ -118,7 +118,7 @@ Here, robust pre-training and finetuning are conducted on the same datasets.
   year={2021}
 }
 
-@article{ACL2020,
+@article{jiang2020ACL,
     title = {Robust Pre-Training by Adversarial Contrastive Learning},
     author = {Ziyu Jiang and Tianlong Chen and Ting Chen and Zhangyang Wang},
     booktitle = {Advances in Neural Information Processing Systems 34},
