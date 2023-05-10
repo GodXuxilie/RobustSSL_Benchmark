@@ -1,6 +1,6 @@
 # Benchmarking Robustness Transferability of Adversarial Contrastive Learning (ACL)
 
-This repository provides ***a unified finetuning and evaluation tool*** to evaluate the performance of finetuned models on the downstream tasks.
+This repository provides ***a unified finetuning and evaluation tool*** to evaluate the performance of pre-trained models on the downstream tasks.
 
 ```
 python finetuning_eval.py   --gpu GPU_id \
