@@ -14,6 +14,10 @@ python finetuning_eval.py   --gpu GPU_id \
                             --eval-OOD 
 ```
 
+We provide all the scripts for finetuning and evalution in the file ```run_tune_eval.sh```. Please feel free to check the performance of the pre-trained encoders.
+
+If you want to use ```finetuning_eval.py``` to evaluate the performance of your pre-trained weights, you need to first specify the hyper-parameters such as the learning rate and the batch size in the function ```setup_hyperparameter(args, mode)``` of the file ```utils.py``` for your method, and then use the above script to conduct finetuning and evaluation.
+
 # Requirement
 + Python 3.8
 + Pytorch 1.13
@@ -37,9 +41,9 @@ Alternatively, you can copy the address of the ```link``` in the following table
 
 **Acknowledgements**: The superscript ```*``` denotes that the pre-trained encoders haved been provided in their GitHub and we copied them into our Dropbox directory.
 
-# Evaluation Procedure and Metrics
+# Finetuning Procedure and Evaluation Metrics
 
-We first conduct finetuning, including standard linear finetuning (**SLF**), adversarial linear finetuning (**ALF**), and adversarial full finetuning (**AFF**), on the downsteam task using the pre-trained models. 
+We first conduct finetuning, including standard linear finetuning (**SLF**), adversarial linear finetuning (**ALF**), and adversarial full finetuning (**AFF**), on the downsteam task using the pre-trained models.
 
 Then, we evaluate the performance of the finetuned model on the downstream task. We use the following evaluation metrics:
 + **SA** refers to the standard test accuracy evaluated on the *natural test data*.
@@ -133,7 +137,6 @@ If you fine the code is useful to you, please cite the following papers.
   booktitle = {Advances in Neural Information Processing Systems},
   year={2020}
 }
-
 ```
 
 # Acknowledgements
