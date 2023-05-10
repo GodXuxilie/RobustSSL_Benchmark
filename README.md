@@ -45,6 +45,7 @@ Then, we evaluate the performance of the finetuned model on the downstream task.
 + **SA** refers to the standard test accuracy evaluated on the natural test data.
 + **RA** refers to the robust test accuracy evaluated on the adversarial test data generated via the standard version of AutoAttack.
 + **CA** refers to the mean test accuracy of the test data under common corruptions with corruption severity ranging \{1,2,3,4,5\}.
++ **Mean SA/RA/CA** refers to the mean value of SA/RA/CA achieved by 3 types of finetuning.
 
 # Performance Benchmarking Across Tasks
 Here, robust pre-training and finetuning are conducted on the same datasets. 
