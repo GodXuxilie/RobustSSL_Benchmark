@@ -1,4 +1,4 @@
-# The code is modified from the code of DynACL <>.
+# The code is modified from the code of DynACL <https://github.com/PKU-ML/DYNACL>.
 import os
 import argparse
 import torch.backends.cudnn as cudnn
@@ -159,6 +159,7 @@ else:
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
         train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
         
+
         # eval natural accuracy
         SLF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, SLF_nat_acc * 100))
@@ -200,21 +201,18 @@ else:
             ALF_ood_acc_list, ALF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, ALF_ood_acc_mean * 100))
             for i in range(5):
-                log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, ALF_ood_acc_list[i] * 100))
+                result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, ALF_ood_acc_list[i] * 100))
 
     if args.mode == 'Ensemble' or args.mode == 'AFF':
         mode = 'AFF'
         log.info('Finetuning mode: {}'.format(mode))
 
         args = setup_hyperparameter(args, mode)
-        if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
-            advFlag = None
-        else:
-            advFlag = 'pgd'
+        advFlag = None
 
         train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
+        model = train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
 
         # eval natural accuracy
         AFF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)

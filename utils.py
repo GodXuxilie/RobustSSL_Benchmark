@@ -262,6 +262,47 @@ def cvtPrevious2bnToCurrent2bn(state_dict):
     return new_state_dict
 
 
+def cvt_state_dict_AFF(state_dict, args):
+    # deal with adv bn
+    state_dict_new = copy.deepcopy(state_dict)
+
+    if args.bnNameCnt >= 0:
+        for name, item in state_dict.items():
+            if 'bn' in name:
+                assert 'bn_list' in name
+                state_dict_new[name.replace(
+                    '.bn_list.{}'.format(args.bnNameCnt), '')] = item
+
+    name_to_del = []
+    for name, item in state_dict_new.items():
+        if 'bn' in name and 'adv' in name:
+            name_to_del.append(name)
+        if 'bn_list' in name:
+            name_to_del.append(name)
+        if 'fc' in name:
+            name_to_del.append(name)
+    for name in np.unique(name_to_del):
+        del state_dict_new[name]
+
+    # deal with down sample layer
+    keys = list(state_dict_new.keys())[:]
+    name_to_del = []
+    for name in keys:
+        if 'downsample.conv' in name:
+            state_dict_new[name.replace(
+                'downsample.conv', 'downsample.0')] = state_dict_new[name]
+            name_to_del.append(name)
+        if 'downsample.bn' in name:
+            state_dict_new[name.replace(
+                'downsample.bn', 'downsample.1')] = state_dict_new[name]
+            name_to_del.append(name)
+    for name in np.unique(name_to_del):
+        del state_dict_new[name]
+
+    state_dict_new['fc.weight'] = state_dict['fc.weight']
+    state_dict_new['fc.bias'] = state_dict['fc.bias']
+    return state_dict_new
+
 def trades_loss_dual(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, perturb_steps=10, beta=6.0, distance='l_inf', natural_mode='pgd'):
     batch_size = len(x_natural)
     # define KL-loss
@@ -335,28 +376,6 @@ def cosine_annealing(step, total_steps, lr_max, lr_min, warmup_steps=0):
 
     return lr
 
-def setup_hyperparameter(args, mode):
-    if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
-        if args.dataset == 'cifar10':
-            args.lr = 0.01
-        if args.dataset == 'cifar100':
-            args.lr = 0.05
-        if args.dataset == 'stl10' and args.resize == 96:
-            args.lr = 0.1
-        if args.dataset == 'stl10' and args.resize == 32:
-            args.lr = 0.01 
-        args.decreasing_lr = '10,20'
-    elif (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE' or args.pretraining == 'DeACL'):
-        args.decreasing_lr = '15,20'
-        args.lr = 0.01
-    elif (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE' or args.pretraining == 'DeACL'):
-        args.decreasing_lr = '15,20'
-        args.lr = 0.1
-    else:
-        args.decreasing_lr = '15,20'
-        args.lr = 0.1
-
-    return args
 
 def get_loader(args):
     # setup data loader
@@ -459,6 +478,7 @@ def load_BN_checkpoint_DeACL(state_dict):
 def get_model(args, num_classes, mode, log, device='cuda'):
     if args.dataset == 'stl10' and args.resize == 96:
         from models.resnet_stl import resnet18, resnet34, resnet50
+        print('sss')
     else:
         from models.resnet import resnet18, resnet34, resnet50
         
@@ -468,14 +488,16 @@ def get_model(args, num_classes, mode, log, device='cuda'):
         do_normalize = 1
 
     if args.model == 'r18':
-        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
+        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
             bn_names = ['normal', 'pgd']
             from models.resnet_multi_bn import resnet18
             model = resnet18(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        elif args.dataset == 'stl10' and args.resize == 96:
+            model = resnet18(num_classes=num_classes).to(device)
         else:
             model = resnet18(num_classes=num_classes, do_normalize=do_normalize).to(device)
     if args.model == 'r34':
-        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
+        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
             bn_names = ['normal', 'pgd']
             from models.resnet_multi_bn import resnet34
             model = resnet34(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
@@ -518,9 +540,10 @@ def get_model(args, num_classes, mode, log, device='cuda'):
             state_dict = checkpoint
         # print(state_dict.keys())
 
-        if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
-            state_dict = cvt_state_dict(
-                state_dict, args, num_classes=num_classes)
+        if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
+            # state_dict = cvt_state_dict(
+                # state_dict, args, num_classes=num_classes)
+            s = 1
         if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
             state_dict, _ = load_BN_checkpoint_AdvCL(state_dict)
         if args.pretraining == 'DeACL':
@@ -530,7 +553,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
             state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
             state_dict['fc.bias'] = torch.zeros(num_classes).to(device)
 
-        # print(state_dict.keys())
+        print(state_dict.keys())
         # print(model.state_dict().keys())
         model.load_state_dict(state_dict, strict=False)
         log.info('read checkpoint {}'.format(args.checkpoint))
@@ -580,7 +603,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                       alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
             output = model.eval()(data)
             loss = criterion(output, target)
-        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL'):
+        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
             loss = trades_loss_dual(model=model,
                                    x_natural=data,
                                    y=target,
@@ -589,7 +612,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                    epsilon=args.epsilon,
                                    perturb_steps=args.num_steps_train,
                                    natural_mode='normal')
-        if mode == 'AFF' and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE'):
+        if mode == 'AFF' and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE' or args.pretraining == 'DeACL'):
             loss = trades_loss(model=model,
                                    x_natural=data,
                                    y=target,
@@ -620,7 +643,7 @@ def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, de
         # linear classification
         train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
         scheduler.step()
-        eval_test_nat(model, test_loader, device, advFlag=None)
+        # eval_test_nat(model, test_loader, device, advFlag='pgd')
         # evaluation
         if (not args.test_frequency == 0) and (epoch % args.test_frequency == 1 or args.test_frequency == 1):
             print('================================================================')
@@ -636,18 +659,27 @@ def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, de
                 }, os.path.join(model_dir, 'model_bestAT.pt'))
             print('================================================================')
 
-        # save checkpoint
-        if (args.pretraining == 'ACL' or args.pretraining == 'DynACL') and mode == 'AFF':
-            state_dict = model.state_dict()
-            state_dict = cvt_state_dict(state_dict, args, num_classes=args.num_classes)
+    # save checkpoint
+    if (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR') and mode == 'AFF':
+        state_dict = model.state_dict()
+        state_dict = cvt_state_dict_AFF(state_dict, args)
+        if args.dataset == 'stl10' and args.resize == 96:
+            from models.resnet_stl import resnet18, resnet34, resnet50
         else:
-            state_dict = model.state_dict()
+            from models.resnet import resnet18, resnet34, resnet50
+        model = resnet18(num_classes=args.num_classes, do_normalize=1).to(device)
+        model.load_state_dict(state_dict)
+        model.eval()
+    else:
+        state_dict = model.state_dict()
 
-        torch.save({
-            'epoch': epoch,
-            'state_dict': state_dict,
-            'optim': optimizer.state_dict(),
-        }, os.path.join(model_dir, '{}_model_finetune.pt'.format(mode)))
+    torch.save({
+        'epoch': epoch,
+        'state_dict': state_dict,
+        'optim': optimizer.state_dict(),
+    }, os.path.join(model_dir, '{}_model_finetune.pt'.format(mode)))
+
+    return model
 
 def cvt_state_dict(state_dict, args, num_classes):
     # deal with adv bn
@@ -776,4 +808,158 @@ def runAA(model, test_loader, log_path, advFlag='pgd'):
         acc += (output.max(1)[1] == labels).float().sum()
     return acc.item() / len(test_loader.dataset)
 
+
+
+def setup_hyperparameter(args, mode):
+    if args.pretraining  == 'ACL':
+        if mode == 'SLF' or mode == 'ALF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+            if args.dataset == 'cifar100':
+                args.lr = 0.05
+            if args.dataset == 'stl10' and args.resize == 96:
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01
+            args.decreasing_lr = '10,20'
+        elif mode == 'AFF':
+            args.lr = 0.1
+            args.batch_size = 128
+            args.epochs = 100
+            args.decreasing_lr = '40,60' 
+
+    elif args.pretraining == 'DynACL':
+        if mode == 'SLF' or mode == 'ALF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+            if args.dataset == 'cifar100':
+                args.lr = 0.05
+            if args.dataset == 'stl10' and args.resize == 96:
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01
+            args.decreasing_lr = '10,20'
+        elif mode == 'AFF':
+            args.batch_size = 128
+            args.decreasing_lr = '15,20'
+            args.lr = 0.1
+    
+    elif args.pretraining == 'AdvCL':
+        if mode == 'SLF' or mode == 'ALF':
+            args.decreasing_lr = '15,20'
+            args.lr = 0.01
+        elif mode == 'AFF':
+            args.batch_size = 128
+            args.decreasing_lr = '15,20'
+            args.lr = 0.1
+
+    elif args.pretraining == 'A-InfoNCE':
+        if mode == 'SLF' or mode == 'ALF':
+            args.decreasing_lr = '15,20'
+            args.lr = 0.01
+        elif mode == 'AFF':
+            args.batch_size = 128
+            args.decreasing_lr = '15,20'
+            args.lr = 0.1
+
+    elif args.pretraining == 'DeACL':
+        if mode == 'SLF' or mode == 'ALF':
+            args.decreasing_lr = '15,20'
+            args.lr = 0.01
+        elif mode == 'AFF':
+            args.batch_size = 128
+            args.decreasing_lr = '15,20'
+            args.lr = 0.1
+
+    elif args.pretraining == 'ACL_IR':
+        if mode == 'SLF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.005
+            if args.dataset == 'cifar100':
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 96:
+                args.lr = 0.01
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01
+            args.decreasing_lr = '10,20'
+        elif mode == 'ALF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+            if args.dataset == 'cifar100':
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 96:
+                args.lr = 0.01
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01 
+            args.decreasing_lr = '10,20'
+        elif mode == 'AFF':
+            args.lr = 0.1
+            args.batch_size = 128
+            args.epochs = 100
+            args.decreasing_lr = '40,60'    
+
+    elif args.pretraining == 'DynACL_IR':
+        if mode == 'SLF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+            if args.dataset == 'cifar100':
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 96:
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01 
+            args.decreasing_lr = '10,20'
+        elif mode == 'ALF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+            if args.dataset == 'cifar100':
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01 
+            args.decreasing_lr = '10,20'
+        elif mode == 'AFF':
+            args.batch_size = 128
+            args.decreasing_lr = '15,20'
+            args.lr = 0.1
+
+    elif args.pretraining == 'DynACL_IR_plus':
+        if mode == 'SLF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+                args.epochs = 4
+            if args.dataset == 'cifar100':
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 96:
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01 
+            args.decreasing_lr = '10,20'
+        elif mode == 'ALF':
+            if args.dataset == 'cifar10':
+                args.lr = 0.01
+                args.epochs = 4
+            if args.dataset == 'cifar100':
+                args.lr = 0.1
+            if args.dataset == 'stl10' and args.resize == 32:
+                args.batch_size = 128
+                args.lr = 0.01 
+            args.decreasing_lr = '10,20'
+        elif mode == 'AFF':
+            args.batch_size = 128
+            args.decreasing_lr = '15,20'
+            args.lr = 0.1
+
+    else:
+        args.batch_size = 128
+        args.decreasing_lr = '15,20'
+        args.lr = 0.1
+
+    return args
 
