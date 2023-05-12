@@ -97,7 +97,6 @@ If you fine the code is useful to you, please cite the following papers.
     year = {2023},
 }
 
-
 @inproceedings{zhang2022DeACL,
   title={Decoupled Adversarial Contrastive Learning for Self-supervised Adversarial Robustness},
   author={Zhang, Chaoning and Zhang, Kang and Zhang, Chenshuang and Niu, Axi and Feng, Jiu and Yoo, Chang D and Kweon, In So},
@@ -106,7 +105,6 @@ If you fine the code is useful to you, please cite the following papers.
   year={2022},
   organization={Springer}
 }
-
 
 @inproceedings{yu2022AInfoNCE,
   title={Adversarial Contrastive Learning via Asymmetric InfoNCE},
