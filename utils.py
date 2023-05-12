@@ -734,7 +734,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                    epsilon=args.epsilon,
                                    perturb_steps=args.num_steps_train,
                                    natural_mode='normal')
-        if mode == 'AFF' and args.pretraining in ['AdvCL', 'A-InfoNCE', 'DeACL','DynACL_IR_plus']:
+        if mode == 'AFF' and args.pretraining in ['AdvCL', 'A-InfoNCE', 'DeACL','DynACL++_IR']:
             ####### For training the model has single batchnorm  ########
             loss = trades_loss(model=model,
                                    x_natural=data,
@@ -941,8 +941,8 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
 
-    ####### Hyperparameter of DynACL_IR_plus ########
-    elif args.pretraining == 'DynACL_IR_plus':
+    ####### Hyperparameter of DynACL++_IR ########
+    elif args.pretraining == 'DynACL++_IR':
         if mode == 'SLF':
             if args.dataset == 'cifar10':
                 args.lr = 0.01
