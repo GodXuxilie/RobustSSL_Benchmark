@@ -341,7 +341,7 @@ def trades_loss_dual(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/
 
     return loss
 
-def eval_test(model, device, loader, log, advFlag = 'pgd'):
+def eval_test(model, device, loader, log, advFlag = None):
     model.eval()
     test_loss = 0
     correct = 0
@@ -376,59 +376,16 @@ def cosine_annealing(step, total_steps, lr_max, lr_min, warmup_steps=0):
 
     return lr
 
-
-def get_loader(args):
-    # setup data loader
-    transform_train = transforms.Compose([
-    transforms.Resize(args.resize),
-    transforms.RandomCrop(args.resize if args.dataset == 'stl10' else 32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    ])
-    transform_test = transforms.Compose([
-    transforms.Resize(args.resize),
-    transforms.ToTensor(),
-    ])
-
-    if args.dataset == 'cifar10':
-        train_datasets = torchvision.datasets.CIFAR10(
-            root=args.data, train=True, download=True, transform=transform_train)
-        vali_datasets = torchvision.datasets.CIFAR10(
-            root=args.data, train=True, download=True, transform=transform_test)
-        testset = torchvision.datasets.CIFAR10(
-            root=args.data, train=False, download=True, transform=transform_test)
-        num_classes = 10
-        args.num_classes = 10
-    elif args.dataset == 'cifar100':
-        train_datasets = torchvision.datasets.CIFAR100(
-            root=args.data, train=True, download=True, transform=transform_train)
-        vali_datasets = torchvision.datasets.CIFAR100(
-            root=args.data, train=True, download=True, transform=transform_test)
-        testset = torchvision.datasets.CIFAR100(
-            root=args.data, train=False, download=True, transform=transform_test)
-        num_classes = 100
-        args.num_classes = 100
-    elif args.dataset == 'stl10':
-        train_datasets = torchvision.datasets.STL10(
-            root=args.data, split='train', transform=transform_train, download=True)
-        vali_datasets = datasets.STL10(
-            root=args.data, split='train', transform=transform_test, download=True)
-        testset = datasets.STL10(
-            root=args.data, split='test', transform=transform_test, download=True)
-        num_classes = 10     
-        args.num_classes = 10
-    else:
-        print("dataset {} is not supported".format(args.dataset))
-        assert False
-
-    train_loader = torch.utils.data.DataLoader(train_datasets, batch_size=args.batch_size, shuffle=True)
-
-    vali_loader = torch.utils.data.DataLoader(vali_datasets, batch_size=args.batch_size, shuffle=True)
-
-    test_loader = torch.utils.data.DataLoader( testset, batch_size=args.test_batch_size, shuffle=True)
-
-    return train_loader, vali_loader, test_loader, num_classes, args
-
+# DeACL
+def load_BN_checkpoint_DeACL(state_dict):
+    new_state_dict = {}
+    new_state_dict_normal = {}
+    for k, v in state_dict.items():
+        if 'backbone.' in k:
+            k = k.replace('backbone.', '')
+        new_state_dict_normal[k] = v
+        new_state_dict[k] = v
+    return new_state_dict, new_state_dict_normal
 
 # AdvCL and A-InfoNCE
 def load_BN_checkpoint_AdvCL(state_dict):
@@ -461,225 +418,6 @@ def load_BN_checkpoint_AdvCL(state_dict):
             new_state_dict_normal[k] = v
             new_state_dict[k] = v
     return new_state_dict, new_state_dict_normal
-
-
-# DeACL
-def load_BN_checkpoint_DeACL(state_dict):
-    new_state_dict = {}
-    new_state_dict_normal = {}
-    for k, v in state_dict.items():
-        if 'backbone.' in k:
-            k = k.replace('backbone.', '')
-        new_state_dict_normal[k] = v
-        new_state_dict[k] = v
-    return new_state_dict, new_state_dict_normal
-
-
-def get_model(args, num_classes, mode, log, device='cuda'):
-    if args.dataset == 'stl10' and args.resize == 96:
-        from models.resnet_stl import resnet18, resnet34, resnet50
-        print('sss')
-    else:
-        from models.resnet import resnet18, resnet34, resnet50
-        
-    if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
-        do_normalize = 0
-    else:
-        do_normalize = 1
-
-    if args.model == 'r18':
-        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
-            bn_names = ['normal', 'pgd']
-            from models.resnet_multi_bn import resnet18
-            model = resnet18(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
-        elif args.dataset == 'stl10' and args.resize == 96:
-            model = resnet18(num_classes=num_classes).to(device)
-        else:
-            model = resnet18(num_classes=num_classes, do_normalize=do_normalize).to(device)
-    if args.model == 'r34':
-        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
-            bn_names = ['normal', 'pgd']
-            from models.resnet_multi_bn import resnet34
-            model = resnet34(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
-        else:
-            model = resnet34(num_classes=num_classes).to(device)
-    if args.model == 'r50':
-        model = resnet50(num_classes=num_classes).to(device)
-        model = torch.nn.DataParallel(model)
-        
-    if mode == 'ALF' or mode == 'SLF':
-        for name, param in model.named_parameters():
-            if args.model == 'r50':
-                if name not in ['module.fc.weight', 'module.fc.bias']:
-                    param.requires_grad = False
-            else:
-                if name not in ['fc.weight', 'fc.bias']:
-                    param.requires_grad = False
-        parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-        assert len(parameters) == 2  # fc.weight, fc.bias
-    elif mode == 'AFF':
-        parameters = model.parameters()
-
-
-    optimizer = optim.SGD(parameters, lr=args.lr,
-                          momentum=args.momentum, weight_decay=args.weight_decay)
-
-    decreasing_lr = list(map(int, args.decreasing_lr.split(',')))
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=decreasing_lr, gamma=0.1)
-
-    start_epoch = args.start_epoch
-
-    if args.checkpoint != '':
-        checkpoint = torch.load(args.checkpoint, map_location="cpu")
-        if 'state_dict' in checkpoint:
-            state_dict = checkpoint['state_dict']
-        elif 'model' in checkpoint:
-            state_dict = checkpoint['model']
-        else:
-            state_dict = checkpoint
-        # print(state_dict.keys())
-
-        if (mode == 'SLF' or mode == 'ALF') and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
-            # state_dict = cvt_state_dict(
-                # state_dict, args, num_classes=num_classes)
-            s = 1
-        if args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE':
-            state_dict, _ = load_BN_checkpoint_AdvCL(state_dict)
-        if args.pretraining == 'DeACL':
-            state_dict, _ = load_BN_checkpoint_DeACL(state_dict)
-        elif not args.eval_only:
-            # zero init fc
-            state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
-            state_dict['fc.bias'] = torch.zeros(num_classes).to(device)
-
-        print(state_dict.keys())
-        # print(model.state_dict().keys())
-        model.load_state_dict(state_dict, strict=False)
-        log.info('read checkpoint {}'.format(args.checkpoint))
-
-    elif args.resume:
-        if 'epoch' in checkpoint and 'optim' in checkpoint:
-            start_epoch = checkpoint['epoch'] + 1
-            optimizer.load_state_dict(checkpoint['optim'])
-            for i in range(start_epoch):
-                scheduler.step()
-            log.info("resume the checkpoint {} from epoch {}".format(
-                args.checkpoint, checkpoint['epoch']))
-        else:
-            log.info("cannot resume since lack of files")
-            assert False
-
-    return model, optimizer, scheduler
-
-def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
-    # model.train()
-    if mode == 'SLF' or mode == 'ALF':
-        model.eval()
-        parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-        print(len(parameters))
-        assert len(parameters) == 2  # fc.weight, fc.bias
-    if mode == 'AFF':
-        model.train()
-
-    dataTimeAve = AverageMeter()
-    totalTimeAve = AverageMeter()
-    end = time.time()
-
-    criterion = torch.nn.CrossEntropyLoss().cuda()
-
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(device), target.to(device)
-        dataTime = time.time() - end
-        dataTimeAve.update(dataTime)
-
-        optimizer.zero_grad()
-        
-        if mode == 'SLF':
-            output = model.eval()(data)
-            loss = criterion(output, target)
-        if mode == 'ALF':
-            data = pgd_attack(model, data, target, device, eps=args.epsilon,
-                                      alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
-            output = model.eval()(data)
-            loss = criterion(output, target)
-        if mode == 'AFF' and (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR'):
-            loss = trades_loss_dual(model=model,
-                                   x_natural=data,
-                                   y=target,
-                                   optimizer=optimizer,
-                                   step_size=args.step_size,
-                                   epsilon=args.epsilon,
-                                   perturb_steps=args.num_steps_train,
-                                   natural_mode='normal')
-        if mode == 'AFF' and (args.pretraining == 'AdvCL' or args.pretraining == 'A-InfoNCE' or args.pretraining == 'DeACL'):
-            loss = trades_loss(model=model,
-                                   x_natural=data,
-                                   y=target,
-                                   optimizer=optimizer,
-                                   step_size=args.step_size,
-                                   epsilon=args.epsilon,
-                                   perturb_steps=args.num_steps_train)
-
-        loss.backward()
-        optimizer.step()
-
-        totalTime = time.time() - end
-        totalTimeAve.update(totalTime)
-        end = time.time()
-        # print progress
-        if batch_idx % 10 == 0:
-            log.info('{} Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tData time: {:.3f}\tTotal time: {:.3f}'.format(
-                mode, epoch, batch_idx * len(data), len(train_loader.dataset),
-                     100. * batch_idx / len(train_loader), loss.item(), dataTimeAve.avg, totalTimeAve.avg))
-
-
-def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir):
-    for epoch in range(args.start_epoch + 1, args.epochs + 1):
-        # adjust learning rate for SGD
-        log.info("current lr is {}".format(
-            optimizer.state_dict()['param_groups'][0]['lr']))
-
-        # linear classification
-        train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
-        scheduler.step()
-        # eval_test_nat(model, test_loader, device, advFlag='pgd')
-        # evaluation
-        if (not args.test_frequency == 0) and (epoch % args.test_frequency == 1 or args.test_frequency == 1):
-            print('================================================================')
-            eval_test(model, device, test_loader, log)
-            vali_atacc = eval_adv_test(model, device, test_loader, epsilon=args.epsilon, alpha=args.step_size,
-                          criterion=F.cross_entropy, log=log, attack_iter=args.num_steps_test)
-            if vali_atacc > best_atacc:
-                best_atacc = vali_atacc
-                torch.save({
-                    'epoch': epoch,
-                    'state_dict': model.state_dict(),
-                    'optim': optimizer.state_dict(),
-                }, os.path.join(model_dir, 'model_bestAT.pt'))
-            print('================================================================')
-
-    # save checkpoint
-    if (args.pretraining == 'ACL' or args.pretraining == 'DynACL' or args.pretraining == 'ACL_IR' or args.pretraining == 'DynACL_IR') and mode == 'AFF':
-        state_dict = model.state_dict()
-        state_dict = cvt_state_dict_AFF(state_dict, args)
-        if args.dataset == 'stl10' and args.resize == 96:
-            from models.resnet_stl import resnet18, resnet34, resnet50
-        else:
-            from models.resnet import resnet18, resnet34, resnet50
-        model = resnet18(num_classes=args.num_classes, do_normalize=1).to(device)
-        model.load_state_dict(state_dict)
-        model.eval()
-    else:
-        state_dict = model.state_dict()
-
-    torch.save({
-        'epoch': epoch,
-        'state_dict': state_dict,
-        'optim': optimizer.state_dict(),
-    }, os.path.join(model_dir, '{}_model_finetune.pt'.format(mode)))
-
-    return model
 
 def cvt_state_dict(state_dict, args, num_classes):
     # deal with adv bn
@@ -792,14 +530,14 @@ def eval_test_OOD(model, test_loader, log, device, advFlag='pgd'):
         acc_list.append(acc_sum/count)
     return acc_list, np.mean(acc_list)
 
-def runAA(model, test_loader, log_path, advFlag='pgd'):
+def runAA(model, test_loader, log_path, advFlag=None):
     model.eval()
     acc = 0.
     adversary = AutoAttack(model, norm='Linf', eps=8/255, version='standard', log_path=log_path)
     for images, labels in test_loader:
         images = images.cuda()
         labels = labels.cuda()
-        xadv = adversary.run_standard_evaluation(images, labels, bs=256)
+        xadv = adversary.run_standard_evaluation(images, labels, bs=512)
         with torch.no_grad():
             if advFlag is not None:
                 output = model.eval()(xadv, 'pgd')
@@ -809,10 +547,278 @@ def runAA(model, test_loader, log_path, advFlag='pgd'):
     return acc.item() / len(test_loader.dataset)
 
 
+def get_loader(args):
+    # setup data loader
+    transform_train = transforms.Compose([
+    transforms.Resize(args.resize),
+    transforms.RandomCrop(args.resize if args.dataset == 'stl10' else 32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    ])
+    transform_test = transforms.Compose([
+    transforms.Resize(args.resize),
+    transforms.ToTensor(),
+    ])
+
+    if args.dataset == 'cifar10':
+        train_datasets = torchvision.datasets.CIFAR10(
+            root=args.data, train=True, download=True, transform=transform_train)
+        vali_datasets = torchvision.datasets.CIFAR10(
+            root=args.data, train=True, download=True, transform=transform_test)
+        testset = torchvision.datasets.CIFAR10(
+            root=args.data, train=False, download=True, transform=transform_test)
+        num_classes = 10
+        args.num_classes = 10
+    elif args.dataset == 'cifar100':
+        train_datasets = torchvision.datasets.CIFAR100(
+            root=args.data, train=True, download=True, transform=transform_train)
+        vali_datasets = torchvision.datasets.CIFAR100(
+            root=args.data, train=True, download=True, transform=transform_test)
+        testset = torchvision.datasets.CIFAR100(
+            root=args.data, train=False, download=True, transform=transform_test)
+        num_classes = 100
+        args.num_classes = 100
+    elif args.dataset == 'stl10':
+        train_datasets = torchvision.datasets.STL10(
+            root=args.data, split='train', transform=transform_train, download=True)
+        vali_datasets = datasets.STL10(
+            root=args.data, split='train', transform=transform_test, download=True)
+        testset = datasets.STL10(
+            root=args.data, split='test', transform=transform_test, download=True)
+        num_classes = 10     
+        args.num_classes = 10
+    else:
+        print("dataset {} is not supported".format(args.dataset))
+        assert False
+
+    train_loader = torch.utils.data.DataLoader(train_datasets, batch_size=args.batch_size, shuffle=True)
+    vali_loader = torch.utils.data.DataLoader(vali_datasets, batch_size=args.batch_size, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch_size, shuffle=True)
+
+    return train_loader, vali_loader, test_loader, num_classes, args
+
+def get_model(args, num_classes, mode, log, device='cuda'):
+    if args.dataset == 'stl10' and args.resize == 96:
+        from models.resnet_stl import resnet18, resnet34, resnet50
+    else:
+        from models.resnet import resnet18, resnet34, resnet50
+    
+    if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+        from models.resnet_multi_bn import resnet18, resnet34, resnet50
+        bn_names = ['normal', 'pgd']
+    
+    ####### set do_normalize=1 if your model needs to normalize the input, otherwise set do_normalize=0 ########
+    if args.pretraining in ['AdvCL', 'A-InfoNCE', 'DeACL']:
+        do_normalize = 0
+    else:
+        do_normalize = 1
+
+    if args.model == 'r18':
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+            model = resnet18(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        else:
+            model = resnet18(num_classes=num_classes, do_normalize=do_normalize).to(device)
+    elif args.model == 'r34':
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+            model = resnet34(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        else:
+            model = resnet34(num_classes=num_classes, do_normalize=do_normalize).to(device)
+    elif args.model == 'r50':
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+            model = resnet50(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        else:
+            model = resnet50(num_classes=num_classes, do_normalize=do_normalize).to(device)
+        model = torch.nn.DataParallel(model)
+        
+    if mode in ['SLF', 'ALF']:
+        for name, param in model.named_parameters():
+            if name not in ['fc.weight', 'fc.bias', 'module.fc.weight', 'module.fc.bias']:
+                param.requires_grad = False
+        parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+        assert len(parameters) == 2  # fc.weight, fc.bias
+    elif mode == 'AFF':
+        parameters = model.parameters()
+
+    optimizer = optim.SGD(parameters, lr=args.lr,
+                          momentum=args.momentum, weight_decay=args.weight_decay)
+
+    decreasing_lr = list(map(int, args.decreasing_lr.split(',')))
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=decreasing_lr, gamma=0.1)
+
+    start_epoch = args.start_epoch
+
+    if args.checkpoint != '':
+        checkpoint = torch.load(args.checkpoint, map_location="cpu")
+        if 'state_dict' in checkpoint:
+            state_dict = checkpoint['state_dict']
+        elif 'model' in checkpoint:
+            state_dict = checkpoint['model']
+        else:
+            state_dict = checkpoint
+        # print(state_dict.keys())
+
+        ####### convert to single batchnorm batch ########
+        if mode in ['SLF', 'ALF'] and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+            state_dict = cvt_state_dict(
+                state_dict, args, num_classes=num_classes)
+            log.info('convert to single batchnorm batch.')
+        if args.pretraining in ['AdvCL', 'A-InfoNCE']:
+            state_dict, _ = load_BN_checkpoint_AdvCL(state_dict)
+            log.info('convert to single batchnorm batch.')
+        if args.pretraining == 'DeACL':
+            state_dict, _ = load_BN_checkpoint_DeACL(state_dict)
+            log.info('convert to single batchnorm batch.')
+        elif not args.eval_only:
+            # zero init fc
+            state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
+            state_dict['fc.bias'] = torch.zeros(num_classes).to(device)
+
+        # print(state_dict.keys())
+        # print(model.state_dict().keys())
+        model.load_state_dict(state_dict, strict=False)
+        log.info('read checkpoint {}'.format(args.checkpoint))
+
+    elif args.resume:
+        if 'epoch' in checkpoint and 'optim' in checkpoint:
+            start_epoch = checkpoint['epoch'] + 1
+            optimizer.load_state_dict(checkpoint['optim'])
+            for i in range(start_epoch):
+                scheduler.step()
+            log.info("resume the checkpoint {} from epoch {}".format(
+                args.checkpoint, checkpoint['epoch']))
+        else:
+            log.info("cannot resume since lack of files")
+            assert False
+
+    return model, optimizer, scheduler
+
+def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
+    # model.train()
+    if mode in ['SLF', 'ALF']:
+        model.eval()
+        parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+        print(len(parameters))
+        assert len(parameters) == 2  # fc.weight, fc.bias
+    if mode == 'AFF':
+        model.train()
+
+    dataTimeAve = AverageMeter()
+    totalTimeAve = AverageMeter()
+    end = time.time()
+
+    criterion = torch.nn.CrossEntropyLoss().cuda()
+
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        dataTime = time.time() - end
+        dataTimeAve.update(dataTime)
+
+        optimizer.zero_grad()
+        
+        if mode == 'SLF':
+            output = model.eval()(data)
+            loss = criterion(output, target)
+        if mode == 'ALF':
+            data = pgd_attack(model, data, target, device, eps=args.epsilon,
+                                      alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
+            output = model.eval()(data)
+            loss = criterion(output, target)
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+            ####### For training the model has dual batchnorm  ########
+            loss = trades_loss_dual(model=model,
+                                   x_natural=data,
+                                   y=target,
+                                   optimizer=optimizer,
+                                   step_size=args.step_size,
+                                   epsilon=args.epsilon,
+                                   perturb_steps=args.num_steps_train,
+                                   natural_mode='normal')
+        if mode == 'AFF' and args.pretraining in ['AdvCL', 'A-InfoNCE', 'DeACL','DynACL_IR_plus']:
+            ####### For training the model has single batchnorm  ########
+            loss = trades_loss(model=model,
+                                   x_natural=data,
+                                   y=target,
+                                   optimizer=optimizer,
+                                   step_size=args.step_size,
+                                   epsilon=args.epsilon,
+                                   perturb_steps=args.num_steps_train)
+
+        loss.backward()
+        optimizer.step()
+
+        totalTime = time.time() - end
+        totalTimeAve.update(totalTime)
+        end = time.time()
+        # print progress
+        if batch_idx % 10 == 0:
+            log.info('{} Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal time: {:.3f}'.format(
+                mode, epoch, batch_idx * len(data), len(train_loader.dataset),
+                     100. * batch_idx / len(train_loader), loss.item(), totalTimeAve.avg))
+
+
+def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir):
+    best_atacc = 0.0
+    for epoch in range(args.start_epoch + 1, args.epochs + 1):
+        # adjust learning rate for SGD
+        if args.warmup_epoch >= epoch:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = args.warmup_lr
+        log.info("current lr is {}".format(
+            optimizer.state_dict()['param_groups'][0]['lr']))
+
+        # linear classification
+        train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
+        scheduler.step()
+
+        # evaluation
+        if (not args.test_frequency == 0) and (epoch % args.test_frequency == 1 or args.test_frequency == 1):
+            print('================================================================')
+            eval_test(model, device, test_loader, log)
+            vali_atacc = eval_adv_test(model, device, test_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=F.cross_entropy, log=log, attack_iter=args.num_steps_test)
+            if vali_atacc > best_atacc:
+                best_atacc = vali_atacc
+                torch.save({
+                    'epoch': epoch,
+                    'state_dict': model.state_dict(),
+                    'optim': optimizer.state_dict(),
+                }, os.path.join(model_dir, 'model_bestAT.pt'))
+            print('================================================================')
+
+    # save checkpoint
+    model = save_checkpoint(args, model, model_dir, mode, device)
+
+    return model
+
+
+def save_checkpoint(args, model, model_dir, mode, device):
+    if args.pretraining in ['ACL', 'DynACL', 'DynACL_IR'] and mode == 'AFF':
+        ####### Convert the model into the version of single batchnorm for saving and evaluation ########
+        state_dict = model.state_dict()
+        state_dict = cvt_state_dict_AFF(state_dict, args)
+        if args.dataset == 'stl10' and args.resize == 96:
+            from models.resnet_stl import resnet18, resnet34, resnet50
+        else:
+            from models.resnet import resnet18, resnet34, resnet50
+        if args.model == 'r18':
+            model = resnet18(num_classes=args.num_classes, do_normalize=1).to(device)
+            model.load_state_dict(state_dict)
+            model.eval()
+    else:
+        state_dict = model.state_dict()
+        model.eval()
+
+    torch.save({
+        'state_dict': state_dict,
+    }, os.path.join(model_dir, '{}_model_finetune.pt'.format(mode)))
+
+    return model
 
 def setup_hyperparameter(args, mode):
+    ####### Hyperparameter of ACL ########
     if args.pretraining  == 'ACL':
-        if mode == 'SLF' or mode == 'ALF':
+        if mode in ['SLF', 'ALF']:
             if args.dataset == 'cifar10':
                 args.lr = 0.01
             if args.dataset == 'cifar100':
@@ -829,8 +835,9 @@ def setup_hyperparameter(args, mode):
             args.epochs = 100
             args.decreasing_lr = '40,60' 
 
+    ####### Hyperparameter of DynACL ########
     elif args.pretraining == 'DynACL':
-        if mode == 'SLF' or mode == 'ALF':
+        if mode in ['SLF', 'ALF']:
             if args.dataset == 'cifar10':
                 args.lr = 0.01
             if args.dataset == 'cifar100':
@@ -846,8 +853,9 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
     
+    ####### Hyperparameter of AdvCL ########
     elif args.pretraining == 'AdvCL':
-        if mode == 'SLF' or mode == 'ALF':
+        if mode in ['SLF', 'ALF']:
             args.decreasing_lr = '15,20'
             args.lr = 0.01
         elif mode == 'AFF':
@@ -855,8 +863,9 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
 
+    ####### Hyperparameter of A-InfoNCE ########
     elif args.pretraining == 'A-InfoNCE':
-        if mode == 'SLF' or mode == 'ALF':
+        if mode in ['SLF', 'ALF']:
             args.decreasing_lr = '15,20'
             args.lr = 0.01
         elif mode == 'AFF':
@@ -864,8 +873,9 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
 
+    ####### Hyperparameter of DeACL ########
     elif args.pretraining == 'DeACL':
-        if mode == 'SLF' or mode == 'ALF':
+        if mode in ['SLF', 'ALF']:
             args.decreasing_lr = '15,20'
             args.lr = 0.01
         elif mode == 'AFF':
@@ -873,6 +883,7 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
 
+    ####### Hyperparameter of ACL_IR ########
     elif args.pretraining == 'ACL_IR':
         if mode == 'SLF':
             if args.dataset == 'cifar10':
@@ -902,10 +913,12 @@ def setup_hyperparameter(args, mode):
             args.epochs = 100
             args.decreasing_lr = '40,60'    
 
+    ####### Hyperparameter of DynACL_IR ########
     elif args.pretraining == 'DynACL_IR':
         if mode == 'SLF':
             if args.dataset == 'cifar10':
                 args.lr = 0.01
+                args.epochs = 5
             if args.dataset == 'cifar100':
                 args.lr = 0.1
             if args.dataset == 'stl10' and args.resize == 96:
@@ -928,18 +941,15 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
 
-    elif args.pretraining == 'DynACL++_IR':
+    ####### Hyperparameter of DynACL_IR_plus ########
+    elif args.pretraining == 'DynACL_IR_plus':
         if mode == 'SLF':
             if args.dataset == 'cifar10':
                 args.lr = 0.01
-                args.epochs = 4
             if args.dataset == 'cifar100':
                 args.lr = 0.1
             if args.dataset == 'stl10' and args.resize == 96:
                 args.lr = 0.1
-            if args.dataset == 'stl10' and args.resize == 32:
-                args.batch_size = 128
-                args.lr = 0.01 
             args.decreasing_lr = '10,20'
         elif mode == 'ALF':
             if args.dataset == 'cifar10':
@@ -947,14 +957,18 @@ def setup_hyperparameter(args, mode):
                 args.epochs = 4
             if args.dataset == 'cifar100':
                 args.lr = 0.1
-            if args.dataset == 'stl10' and args.resize == 32:
-                args.batch_size = 128
-                args.lr = 0.01 
             args.decreasing_lr = '10,20'
         elif mode == 'AFF':
-            args.batch_size = 128
-            args.decreasing_lr = '15,20'
-            args.lr = 0.1
+            if args.dataset == 'cifar10':
+                args.warmup_epoch = 1 
+                args.warmup_lr = 0.05
+                args.batch_size = 128
+                args.decreasing_lr = '15,20'
+                args.lr = 0.1
+            else:
+                args.batch_size = 128
+                args.decreasing_lr = '15,20'
+                args.lr = 0.1
 
     else:
         args.batch_size = 128

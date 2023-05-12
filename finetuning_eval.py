@@ -14,6 +14,9 @@ parser.add_argument('--experiment', type=str,
                     required=True)
 
 parser.add_argument('--model', type=str, default='r18')
+parser.add_argument('--checkpoint', default='', type=str,
+                    help='path to pretrained model')
+
 parser.add_argument('--data', type=str, default='../data',
                     help='location of the data')
 parser.add_argument('--dataset', default='cifar10', type=str,
@@ -50,29 +53,29 @@ parser.add_argument('--eval-AA', action='store_true',
                     help='if specified, eval the loaded model')
 parser.add_argument('--eval-OOD', action='store_true',
                     help='if specified, eval the loaded model')
-parser.add_argument('--checkpoint', default='', type=str,
-                    help='path to pretrained model')
 
 parser.add_argument('--resume', action='store_true',
                     help='if resume training')
 parser.add_argument('--start-epoch', default=0, type=int,
                     help='the start epoch number')
 
+parser.add_argument('--warmup_lr', type=float, default=0.05,
+                    help='warmup learning rate')
+parser.add_argument('--warmup_epoch', type=int, default=0,
+                    help='warmup epochs')
 parser.add_argument('--decreasing_lr', default='10,20',
                     help='decreasing strategy')
-parser.add_argument('--cvt_state_dict', action='store_true',
-                    help='Need to be specified if pseudo-label finetune is not implemented')
 
-parser.add_argument('--bnNameCnt', default=1, type=int)
+parser.add_argument('--pretraining', type=str, default='ACL',
+                    help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL, DynACL_IR, DynACL_IR_plus')
 parser.add_argument('--mode', type=str, default='ALL',
                     help='ALL, SLF, ALF, AFF')
-parser.add_argument('--pretraining', type=str, default='ACL',
-                    help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL')
 
 parser.add_argument('--test_frequency', type=int, default=0,
                     help='validation frequency during finetuning, 0 for no evaluation')   
 
 parser.add_argument('--gpu', type=str, default='0', help='Set up the GPU id')
+
 args = parser.parse_args()
 
 # settings
@@ -148,7 +151,7 @@ else:
     result_log = logger(os.path.join(result_dir))
     result_log.info('Finetuning checkpoint: {}'.format(args.checkpoint))
 
-    if args.mode == 'ALL' or args.mode == 'SLF':
+    if args.mode in ['ALL', 'SLF']:
         mode = 'SLF'
         advFlag = None
         log.info('Finetuning mode: {}'.format(mode))
@@ -176,7 +179,7 @@ else:
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, SLF_ood_acc_list[i] * 100))
 
-    if args.mode == 'ALL' or args.mode == 'ALF':
+    if args.mode in ['ALL', 'ALF']:
         mode = 'ALF'
         log.info('Finetuning mode: {}'.format(mode))
 
@@ -203,7 +206,7 @@ else:
             for i in range(5):
                 result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, ALF_ood_acc_list[i] * 100))
 
-    if args.mode == 'ALL' or args.mode == 'AFF':
+    if args.mode in ['ALL', 'AFF']:
         mode = 'AFF'
         log.info('Finetuning mode: {}'.format(mode))
 
