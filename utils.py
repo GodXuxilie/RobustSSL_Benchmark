@@ -651,7 +651,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
     if args.checkpoint != '':
         checkpoint = torch.load(args.checkpoint, map_location="cpu")
         if args.pretraining in ['DynACL++', 'DynACL++_IR'] and mode == 'AFF':
-            state_dict = checkpoint['state_dict_plus']
+            state_dict = checkpoint['state_dict_dual']
         elif 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
         elif 'model' in checkpoint:
