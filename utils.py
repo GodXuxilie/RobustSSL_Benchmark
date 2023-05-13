@@ -603,7 +603,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
     else:
         from models.resnet import resnet18, resnet34, resnet50
     
-    if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+    if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++', 'DynACL_IR', 'DynACL++_IR']:
         from models.resnet_multi_bn import resnet18, resnet34, resnet50
         bn_names = ['normal', 'pgd']
     
@@ -614,17 +614,17 @@ def get_model(args, num_classes, mode, log, device='cuda'):
         do_normalize = 1
 
     if args.model == 'r18':
-        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++', 'DynACL_IR', 'DynACL++_IR']:
             model = resnet18(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
         else:
             model = resnet18(num_classes=num_classes, do_normalize=do_normalize).to(device)
     elif args.model == 'r34':
-        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++', 'DynACL_IR', 'DynACL++_IR']:
             model = resnet34(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
         else:
             model = resnet34(num_classes=num_classes, do_normalize=do_normalize).to(device)
     elif args.model == 'r50':
-        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++', 'DynACL_IR', 'DynACL++_IR']:
             model = resnet50(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
         else:
             model = resnet50(num_classes=num_classes, do_normalize=do_normalize).to(device)
@@ -650,7 +650,9 @@ def get_model(args, num_classes, mode, log, device='cuda'):
 
     if args.checkpoint != '':
         checkpoint = torch.load(args.checkpoint, map_location="cpu")
-        if 'state_dict' in checkpoint:
+        if args.pretraining in ['DynACL++', 'DynACL++_IR'] and mode == 'AFF':
+            state_dict = checkpoint['state_dict_plus']
+        elif 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
         elif 'model' in checkpoint:
             state_dict = checkpoint['model']
@@ -724,7 +726,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                       alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
             output = model.eval()(data)
             loss = criterion(output, target)
-        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL_IR']:
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++',  'DynACL_IR','DynACL++_IR']:
             ####### For training the model has dual batchnorm  ########
             loss = trades_loss_dual(model=model,
                                    x_natural=data,
@@ -734,7 +736,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                    epsilon=args.epsilon,
                                    perturb_steps=args.num_steps_train,
                                    natural_mode='normal')
-        if mode == 'AFF' and args.pretraining in ['AdvCL', 'A-InfoNCE', 'DeACL','DynACL++_IR']:
+        if mode == 'AFF' and args.pretraining in ['AdvCL', 'A-InfoNCE', 'DeACL']:
             ####### For training the model has single batchnorm  ########
             loss = trades_loss(model=model,
                                    x_natural=data,
@@ -836,7 +838,7 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '40,60' 
 
     ####### Hyperparameter of DynACL ########
-    elif args.pretraining == 'DynACL':
+    elif args.pretraining in ['DynACL', 'DynACL++']:
         if mode in ['SLF', 'ALF']:
             if args.dataset == 'cifar10':
                 args.lr = 0.01

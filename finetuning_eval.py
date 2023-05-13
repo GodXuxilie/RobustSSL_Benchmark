@@ -67,7 +67,7 @@ parser.add_argument('--decreasing_lr', default='10,20',
                     help='decreasing strategy')
 
 parser.add_argument('--pretraining', type=str, default='ACL',
-                    help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL, DynACL_IR, DynACL++_IR')
+                    help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL, DynACL++, DynACL_IR, DynACL++_IR')
 parser.add_argument('--mode', type=str, default='ALL',
                     help='ALL, SLF, ALF, AFF')
 
