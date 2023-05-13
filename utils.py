@@ -965,10 +965,11 @@ def setup_hyperparameter(args, mode):
                 args.decreasing_lr = '15,20'
                 args.lr = 0.1
                 args.epoch = 19
-            else:
+            elif args.dataset == 'cifar100':
                 args.batch_size = 128
                 args.decreasing_lr = '15,20'
                 args.lr = 0.1
+                args.epoch = 23
 
     else:
         args.batch_size = 128
