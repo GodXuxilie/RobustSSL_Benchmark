@@ -762,15 +762,14 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
 def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir):
     best_atacc = 0.0
     for epoch in range(args.start_epoch + 1, args.epochs + 1):
-        # adjust learning rate for SGD
-        if args.warmup_epoch >= epoch:
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = args.warmup_lr
+        
         log.info("current lr is {}".format(
             optimizer.state_dict()['param_groups'][0]['lr']))
 
         # linear classification
         train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
+
+        # adjust learning rate for SGD
         scheduler.step()
 
         # evaluation
@@ -962,11 +961,10 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '10,20'
         elif mode == 'AFF':
             if args.dataset == 'cifar10':
-                args.warmup_epoch = 1 
-                args.warmup_lr = 0.05
                 args.batch_size = 128
                 args.decreasing_lr = '15,20'
                 args.lr = 0.1
+                args.epoch = 19
             else:
                 args.batch_size = 128
                 args.decreasing_lr = '15,20'

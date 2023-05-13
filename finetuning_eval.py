@@ -59,10 +59,6 @@ parser.add_argument('--resume', action='store_true',
 parser.add_argument('--start-epoch', default=0, type=int,
                     help='the start epoch number')
 
-parser.add_argument('--warmup_lr', type=float, default=0.05,
-                    help='warmup learning rate')
-parser.add_argument('--warmup_epoch', type=int, default=0,
-                    help='warmup epochs')
 parser.add_argument('--decreasing_lr', default='10,20',
                     help='decreasing strategy')
 
