@@ -51,7 +51,7 @@ We consider three fine-tuning modes:
 
 Here, we provide two kinds of fine-tuning methods:
 - Vanilla: You need to specify the hyper-parameters such as the learning rate and the batch size in the function ```setup_hyperparameter(args, mode)``` of the file ```utils.py```.
-- [AutoLoRa](): It is a **parameter-free and automated** robust fine-tuning framework. You *DO NOT* need to search for the appropriate hyper-parameters.
+- [AutoLoRa](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/AutoLoRa): It is a **parameter-free and automated** robust fine-tuning framework. You *DO NOT* need to search for the appropriate hyper-parameters.
 
 To provide a comprehensive benchmark, we welcome incoraporating new robust fine-tuning methods into our repo!
 
