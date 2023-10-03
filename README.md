@@ -16,7 +16,7 @@ We consider the following self-supervised robust pre-training methods:
 - [IR (NeurIPS'23)]()
 - [RCS (NeurIPS'23 Spotlight)]()
 
-<details> <summary>We released all the pre-trained weights in <a href='https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0'>a Dropbox directory </a>.</summary> 
+<details> <summary>We released all the pre-trained weights in <a href='https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0'>a Dropbox directory</a>.</summary> 
 <!-- Alternatively, you can copy the address of the ```link``` in the following table and then use ```wget link_address``` to download the specific pre-trained weight. -->
 
 | Pre-trained weights of ResNet-18 encoder | ACL ([Jiang et al., NeurIPS'20](https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html)) | AdvCL ([Fan et al., NeurIPS'21](https://arxiv.org/abs/2111.01124)) | A-InfoNCE ([Yu et al., ECCV'22](https://arxiv.org/abs/2207.08374#:~:text=Contrastive%20learning%20(CL)%20has%20recently,other%2C%20yields%20better%20adversarial%20robustness)) | DeACL ([Zhang et al., ECCV'22](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136900716.pdf)) | DynACL ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL++ ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL-IR ([Xu et al., NeurIPS'23](https://arxiv.org/abs/2305.00374)) | DynACL++-IR ([Xu et al., NeurIPS'23](https://arxiv.org/abs/2305.00374)) |
@@ -42,10 +42,10 @@ To provide a comprehensive benchmark, we welcome incoraporating new self-supervi
 <!-- we cloned the pre-training code of  You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training. -->
 
 ## Fine-Tuning Methods
-We consider three finetuning modes:
-- Standard linear finetuning (**SLF**): only standardly fine-tuning the classifier.
-- Adversarial linear finetuning (**ALF**): only adversarially fine-tuning the classifier.
-- Adversarial full finetuning (**AFF**): adversarially fine-tuning both the encoder and the classifier.
+We consider three fine-tuning modes:
+- Standard linear fine-tuning (**SLF**): only standardly fine-tuning the classifier.
+- Adversarial linear fine-tuning (**ALF**): only adversarially fine-tuning the classifier.
+- Adversarial full fine-tuning (**AFF**): adversarially fine-tuning both the encoder and the classifier.
 
 We provide two kinds of fine-tuning methods:
 - Vanilla: You need to specify the hyper-parameters such as the learning rate and the batch size in the function ```setup_hyperparameter(args, mode)``` of the file ```utils.py```.
