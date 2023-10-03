@@ -44,17 +44,17 @@ To provide a comprehensive benchmark, we welcome incoraporating new self-supervi
 <!-- we cloned the pre-training code of  You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training. -->
 
 ## Fine-Tuning Methods
-We consider three fine-tuning modes:
-- Standard linear fine-tuning (**SLF**): only standardly fine-tuning the classifier.
-- Adversarial linear fine-tuning (**ALF**): only adversarially fine-tuning the classifier.
-- Adversarial full fine-tuning (**AFF**): adversarially fine-tuning both the encoder and the classifier.
-
 Here, we provide two kinds of fine-tuning methods:
 - [Vanilla](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/Vanilla): You need to specify the hyper-parameters such as the learning rate and the batch size for each pre-trained models. We provide all the scripts for finetuning and evalution in the file [```run_vanilla_tune.sh```](https://github.com/GodXuxilie/ACL_Benchmark/blob/main/Finetuning_Methods/Vanilla/run_vanilla_tune.sh).
 <!-- ```setup_hyperparameter(args, mode)``` of the file ```utils.py```. -->
 - [AutoLoRa (Xu et al., ArXiv'23)](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/AutoLoRa): It is a **parameter-free and automated** robust fine-tuning framework. You *DO NOT* need to search for the appropriate hyper-parameters. We provide all the scripts for finetuning and evalution in the file [```run_autolora_tune.sh```](https://github.com/GodXuxilie/ACL_Benchmark/blob/main/Finetuning_Methods/AutoLoRa/low_resolution/run_autolora_tune.sh).
 
 To provide a comprehensive benchmark, we welcome incoraporating new robust fine-tuning methods into our repo!
+
+We consider the following three fine-tuning modes:
+- Standard linear fine-tuning (**SLF**): only standardly fine-tuning the classifier.
+- Adversarial linear fine-tuning (**ALF**): only adversarially fine-tuning the classifier.
+- Adversarial full fine-tuning (**AFF**): adversarially fine-tuning both the encoder and the classifier.
 
 <!-- To conduct fine-tuning, you can use the following script:
 ```
