@@ -14,7 +14,7 @@ We consider the following self-supervised robust pre-training methods:
 - [DeAC (ECCV'22)](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e)
 - [DynACL (ICLR'23)](https://github.com/PKU-ML/DYNACL) 
 - [IR (NeurIPS'23)]()
-- [Efficient_ACL (NeurIPS'23 Spotlight)]()
+- [RCS (NeurIPS'23 Spotlight)]()
 
 <details> <summary>We released all the pre-trained weights in <a href='https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0'>a Dropbox directory </a>.</summary> 
 <!-- Alternatively, you can copy the address of the ```link``` in the following table and then use ```wget link_address``` to download the specific pre-trained weight. -->
