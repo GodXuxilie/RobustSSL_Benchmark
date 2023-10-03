@@ -55,7 +55,7 @@ Here, we provide two kinds of fine-tuning methods:
 
 To provide a comprehensive benchmark, we welcome incoraporating new robust fine-tuning methods into our repo!
 
-To conduct fine-tuning, you can use the following script:
+<!-- To conduct fine-tuning, you can use the following script:
 ```
 python finetuning_eval.py   --gpu GPU_id \
                             --experiment path_of_directory_for_saving_log \
@@ -69,7 +69,7 @@ python finetuning_eval.py   --gpu GPU_id \
                             --eval-OOD 
 ```
 
-We provide all the scripts for finetuning and evalution in the file ```run_tune_eval.sh```. Please feel free to check the performance of the pre-trained encoders.
+We provide all the scripts for finetuning and evalution in the file ```run_tune_eval.sh```. Please feel free to check the performance of the pre-trained encoders. -->
 
 <!-- If you want to use ```finetuning_eval.py``` to evaluate the performance of your pre-trained weights, you need to first specify the hyper-parameters such as the learning rate and the batch size in the function ```setup_hyperparameter(args, mode)``` of the file ```utils.py``` for your method, and then use the above script to conduct finetuning and evaluation. -->
 
