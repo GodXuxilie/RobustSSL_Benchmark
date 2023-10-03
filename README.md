@@ -7,19 +7,20 @@ In this repo, we provide a benchmark for robustness transferability of robust pr
 ## Self-Supervised Robust Pre-Training
 
 We consider the following self-supervised robust pre-training methods: 
-- [ACL (NeurIPS'20)](https://github.com/VITA-Group/Adversarial-Contrastive-Learning)
-- [RoCL (NeurIPS'20)](https://github.com/Kim-Minseon/RoCL)
-- [AdvCL (NeruIPS'21)](https://github.com/LijieFan/AdvCL)
-- [A-InfoNCE (ECCV'22)](https://github.com/yqy2001/A-InfoNCE)
-- [DeAC (ECCV'22)](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e)
-- [DynACL (ICLR'23)](https://github.com/PKU-ML/DYNACL) 
-- [IR (NeurIPS'23)]()
-- [RCS (NeurIPS'23 Spotlight)]()
+- [ACL (Jiang et al., NeurIPS'20)](https://github.com/VITA-Group/Adversarial-Contrastive-Learning)
+- [AdvCL (Fan et al., NeruIPS'21)](https://github.com/LijieFan/AdvCL)
+- [A-InfoNCE (Yu et al., ECCV'22)](https://github.com/yqy2001/A-InfoNCE)
+- [DeAC (Zhang et al., ECCV'22)](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e)
+- [DynACL (Luo et al., ICLR'23)](https://github.com/PKU-ML/DYNACL) 
+- [IR (Xu et al., NeurIPS'23a)]()
+- [RCS (Xu et al., NeurIPS'23b)]()
+
+<!-- - [RoCL (NeurIPS'20)](https://github.com/Kim-Minseon/RoCL) -->
 
 <details> <summary>We released all the pre-trained weights in <a href='https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0'>a Dropbox directory</a>.</summary> 
 <!-- Alternatively, you can copy the address of the ```link``` in the following table and then use ```wget link_address``` to download the specific pre-trained weight. -->
 
-| Pre-trained weights of ResNet-18 encoder | ACL ([Jiang et al., NeurIPS'20](https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html)) | AdvCL ([Fan et al., NeurIPS'21](https://arxiv.org/abs/2111.01124)) | A-InfoNCE ([Yu et al., ECCV'22](https://arxiv.org/abs/2207.08374#:~:text=Contrastive%20learning%20(CL)%20has%20recently,other%2C%20yields%20better%20adversarial%20robustness)) | DeACL ([Zhang et al., ECCV'22](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136900716.pdf)) | DynACL ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL++ ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL-IR ([Xu et al., NeurIPS'23](https://arxiv.org/abs/2305.00374)) | DynACL++-IR ([Xu et al., NeurIPS'23](https://arxiv.org/abs/2305.00374)) |
+| Pre-trained weights of ResNet-18 encoder | ACL ([Jiang et al., NeurIPS'20](https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html)) | AdvCL ([Fan et al., NeurIPS'21](https://arxiv.org/abs/2111.01124)) | A-InfoNCE ([Yu et al., ECCV'22](https://arxiv.org/abs/2207.08374#:~:text=Contrastive%20learning%20(CL)%20has%20recently,other%2C%20yields%20better%20adversarial%20robustness)) | DeACL ([Zhang et al., ECCV'22](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136900716.pdf)) | DynACL ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL++ ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL-IR ([Xu et al., NeurIPS'23a](https://arxiv.org/abs/2305.00374)) | DynACL++-IR ([Xu et al., NeurIPS'23a](https://arxiv.org/abs/2305.00374)) |
 |---|---|---|---|---|---|---|---|---|
 | CIFAR-10 | [link<sup>*</sup>](https://www.dropbox.com/s/cq8c0a5u06mxnoj/ACL_DS.pt?dl=0) | [link](https://www.dropbox.com/s/fzwg9gcf4ty5oji/AdvCL.pt?dl=0) | [link](https://www.dropbox.com/s/bk8eu96ppcj44sz/AInfoNCE.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/wo1qrrnybycunn3/DeACL.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/vhxt1hkrtpz2bf9/DynACL.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/87fhoyrzh33fwrt/DynACL%2B%2B.pt?dl=0) | [link](https://www.dropbox.com/s/gw2yopl0dp0exhg/DynACL_IR.pt?dl=0) | [link](https://www.dropbox.com/s/3mucajb2shgaega/DynACL%2B%2B_IR.pt?dl=0) |
 | CIFAR-100 | [link<sup>*</sup>](https://www.dropbox.com/s/02hhe679zo6c7da/ACL_DS_CIFAR100.pt?dl=0) | [link](https://www.dropbox.com/s/fcf5y77p87447p9/AdvCL_CIFAR100.pt?dl=0) | [link](https://www.dropbox.com/s/f0ruhgov3dbdcae/AInfoNCE_CIFAR100.pt?dl=0) | - | [link<sup>*</sup>](https://www.dropbox.com/s/mabnrcp7zahp6ke/DynACL_CIFAR100.pt?dl=0) | [link<sup>*</sup>](https://www.dropbox.com/s/hcjol6ihj0en2fn/DynACL%2B%2B_CIFAR100.pt?dl=0) | [link](https://www.dropbox.com/s/fyilp077jfwom27/DynACL_IR_CIFAR100.pt?dl=0) | [link](https://www.dropbox.com/s/8mbsjwwqqtrvzw4/DynACL%2B%2B_IR_CIFAR100.pt?dl=0) |
