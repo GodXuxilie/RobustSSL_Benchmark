@@ -52,8 +52,8 @@ Here, we provide two kinds of fine-tuning methods:
 To provide a comprehensive benchmark, we welcome incoraporating new robust fine-tuning methods into our repo!
 
 We consider the following three fine-tuning modes:
-- Standard linear fine-tuning (**SLF**): only standardly fine-tuning the classifier.
-- Adversarial linear fine-tuning (**ALF**): only adversarially fine-tuning the classifier.
+- Standard linear fine-tuning (**SLF**): only standardly fine-tuning the classifier while freezing the encoder.
+- Adversarial linear fine-tuning (**ALF**): only adversarially fine-tuning the classifier while freezing the encoder.
 - Adversarial full fine-tuning (**AFF**): adversarially fine-tuning both the encoder and the classifier.
 
 <!-- To conduct fine-tuning, you can use the following script:
