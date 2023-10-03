@@ -636,7 +636,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
                 param.requires_grad = False
         parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
         assert len(parameters) == 2  # fc.weight, fc.bias
-    elif mode == 'AFF':
+    elif mode in ['AFF', 'SFF']:
         parameters = model.parameters()
 
     optimizer = optim.SGD(parameters, lr=args.lr,
@@ -702,7 +702,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
         parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
         print(len(parameters))
         assert len(parameters) == 2  # fc.weight, fc.bias
-    if mode == 'AFF':
+    if mode in ['AFF', 'SFF']:
         model.train()
 
     dataTimeAve = AverageMeter()
@@ -745,6 +745,10 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                    step_size=args.step_size,
                                    epsilon=args.epsilon,
                                    perturb_steps=args.num_steps_train)
+            
+        if mode == 'SFF':
+            output = model(data)
+            loss = criterion(output, target)
 
         loss.backward()
         optimizer.step()
@@ -835,6 +839,8 @@ def setup_hyperparameter(args, mode):
             args.batch_size = 128
             args.epochs = 100
             args.decreasing_lr = '40,60' 
+        args.bnNameCnt = 1
+
 
     ####### Hyperparameter of DynACL ########
     elif args.pretraining in ['DynACL', 'DynACL++']:
@@ -853,6 +859,8 @@ def setup_hyperparameter(args, mode):
             args.batch_size = 128
             args.decreasing_lr = '15,20'
             args.lr = 0.1
+        args.bnNameCnt = 1
+
     
     ####### Hyperparameter of AdvCL ########
     elif args.pretraining == 'AdvCL':
@@ -965,11 +973,10 @@ def setup_hyperparameter(args, mode):
                 args.decreasing_lr = '15,20'
                 args.lr = 0.1
                 args.epoch = 19
-            elif args.dataset == 'cifar100':
+            else:
                 args.batch_size = 128
                 args.decreasing_lr = '15,20'
                 args.lr = 0.1
-                args.epoch = 23
 
     else:
         args.batch_size = 128

@@ -122,7 +122,7 @@ class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
-                 norm_layer=None):
+                 norm_layer=None, do_normalize=1):
         super(ResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -130,6 +130,7 @@ class ResNet(nn.Module):
 
         self.normalize = NormalizeByChannelMeanStd(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.do_normalize = do_normalize
 
         self.inplanes = 64
         self.dilation = 1
@@ -201,7 +202,8 @@ class ResNet(nn.Module):
     def _forward_impl(self, x, return_features=False):
 
         # normalize
-        x = self.normalize(x)
+        if self.do_normalize:
+            x = self.normalize(x)
 
         # See note [TorchScript super()]
         x = self.conv1(x)
