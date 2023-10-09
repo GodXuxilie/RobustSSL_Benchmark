@@ -5,11 +5,7 @@ This repository provides codes for NeurIPS 2023 (Spotlight) paper: **Efficient A
 
 <!-- In this repo, we provide the code and the script for reproduce the experiemtns in the main paper, including ACL/DynACL on CIFAR-10/CIFAR-100/STL10, ACL on ImageNet-1K, and standard adversarial training (SAT) on ImageNet-1K.  -->
 
-## Prerequesite
-
-<!-- ### Dataset preparation -->
-
-### Package
+## Package
 + Python 3.8
 + Pytorch 1.13
 + CUDA 11.6
@@ -28,7 +24,7 @@ python DynACL.py exp_dir --ACL_DS --dataset dataset --fraction 0.2 &
 cd ./ACL_ImageNet
 python ACL.py exp_dir --ACL_DS --fraction 0.05 &
 ```
-As for preparing ImageNet-1K of $32 \times 32$ resolution, we use the following scripts.
+As for preparing ImageNet-1K of $32 \times 32$ resolution, we use the following scripts:
 
 ```
 wget https://image-net.org/data/downsample/Imagenet32_train.zip
@@ -46,7 +42,7 @@ python SAT.py --out_dir exp_dir --fraction 0.05
 cd ./SAT_ImageNet_224
 python SAT.py --out_dir exp_dir --fraction 0.05 
 ```
-As for preparing ImageNet-1K of $224\times 224$ resolution, we use the following scripts.
+As for preparing ImageNet-1K of $224\times 224$ resolution, we use the following scripts:
 ```
 wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train.tar
 wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar
