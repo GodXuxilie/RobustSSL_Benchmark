@@ -80,7 +80,7 @@ We provide all the scripts for finetuning and evalution in the file ```run_tune_
 + [AutoAttack](https://github.com/fra31/auto-attack) (Install AutoAttack via ```pip install git+https://github.com/fra31/auto-attack```)
 + [robustbench](https://robustbench.github.io/) (Install robustbench via ```pip install git+https://github.com/RobustBench/robustbench.git```)
 
-## Leaderboard
+## [Leaderboard](https://robustssl.github.io)
 
 The leaderboard is demonstrates in [robustssl.github.io](https://robustssl.github.io).
 
