@@ -161,7 +161,7 @@ The leaderboard is demonstrates in [robustssl.github.io](https://robustssl.githu
 
 ## References
 If you fine the code is useful to you, please cite the following papers by copying the following BibTeX.
-<details> <summary>BibTeX</summary>
+<!-- <details> <summary>BibTeX</summary> -->
 
 ```
 @inproceedings{xu2023RCS,
@@ -224,7 +224,7 @@ If you fine the code is useful to you, please cite the following papers by copyi
   year={2020}
 }
 ```
-</details>
+<!-- </details> -->
 
 
 
@@ -235,5 +235,5 @@ The pre-training code in the directory of ```ACL_Methods``` are provided by [ACL
 
 ## Contact
 
-Please contact xuxilie@comp.nus.edu.sg and jingfeng.zhang@riken.jp if you have any question on the codes.
+Please contact xuxilie@comp.nus.edu.sg and jingfeng.zhang@auckland.ac.nz if you have any question on the codes.
 
