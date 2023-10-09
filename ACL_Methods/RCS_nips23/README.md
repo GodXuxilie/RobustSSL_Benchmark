@@ -16,13 +16,13 @@ This repository provides codes for NeurIPS 2023 (Spotlight) paper: **Efficient A
 ### [ACL/DynACL with RCS on CIFAR-10/CIFAR-100/STL-10](./ACL/run.sh)
 ```
 cd ./ACL
-python ACL.py exp_dir --ACL_DS --dataset dataset --fraction 0.2 &
-python DynACL.py exp_dir --ACL_DS --dataset dataset --fraction 0.2 &
+python ACL.py exp_dir --ACL_DS --dataset dataset --fraction 0.2
+python DynACL.py exp_dir --ACL_DS --dataset dataset --fraction 0.2
 ```
 ### [ACL with RCS on ImageNet-1K of $32 \times 32$ resolution](./ACL_ImageNet/ACL_imagnet.sh)
 ```
 cd ./ACL_ImageNet
-python ACL.py exp_dir --ACL_DS --fraction 0.05 &
+python ACL.py exp_dir --ACL_DS --fraction 0.05
 ```
 As for preparing ImageNet-1K of $32 \times 32$ resolution, we use the following scripts:
 
