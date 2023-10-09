@@ -1,4 +1,4 @@
-# Benchmarking Robustness Transferability of Robust Self-Supervised Learning (RobustSSL)
+# Benchmarking Transferability of Robust Self-Supervised Learning (RobustSSL)
 The wide-ranging applications of foundation models, espeically in safety-critical areas, necessitates the robust self-supervised learning which can yield strong adversarial robustness in downsteam tasks via fine-tuning.
 In this repo, we provide a benchmark for robustness transferability of robust pre-training.
 
