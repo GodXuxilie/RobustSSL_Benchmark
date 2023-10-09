@@ -10,7 +10,7 @@ This repository provides codes for NeurIPS 2023 paper: **Enhancing Adversarial C
 + CUDA 11.6
 
 
-## Script
+## [Script](./run.sh)
 ```
 # ACL with IR
 python pretraining.py exp_dir --dataset dataset --ACL_DS 
