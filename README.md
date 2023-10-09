@@ -217,17 +217,16 @@ If you fine the code is useful to you, please cite the following papers by copyi
     year = {2020}
     }
 
-@inproceedings{kim2020RoCL,
-  title={Adversarial Self-Supervised Contrastive Learning},
-  author={Minseon Kim and Jihoon Tack and Sung Ju Hwang},
-  booktitle = {Advances in Neural Information Processing Systems},
-  year={2020}
-}
 ```
 <!-- </details> -->
 
 
-
+<!-- @inproceedings{kim2020RoCL, -->
+  <!-- title={Adversarial Self-Supervised Contrastive Learning}, -->
+  <!-- author={Minseon Kim and Jihoon Tack and Sung Ju Hwang}, -->
+  <!-- booktitle = {Advances in Neural Information Processing Systems}, -->
+  <!-- year={2020} -->
+<!-- } -->
 
 <!-- ## Acknowledgements
 
