@@ -18,7 +18,7 @@ python pretraining.py exp_dir --dataset dataset --ACL_DS
 python pretraining.py exp_dir --dataset dataset --ACL_DS --DynAug
 ```
 
-## BibTex
+## BibTeX
 ```
 @inproceedings{xu2023IR,
   title={Enhancing Adversarial Contrastive Learning via Adversarial Invariant Regularization},
