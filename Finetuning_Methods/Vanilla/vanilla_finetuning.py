@@ -17,7 +17,7 @@ parser.add_argument('--model', type=str, default='r18')
 parser.add_argument('--checkpoint', default='', type=str,
                     help='path to pretrained model')
 
-parser.add_argument('--data', type=str, default='/home/x/xuxilie/data',
+parser.add_argument('--data', type=str, default='../data',
                     help='location of the data')
 parser.add_argument('--dataset', default='cifar10', type=str,
                     help='dataset to be used (cifar10 or cifar100)')
@@ -87,18 +87,18 @@ cudnn.benchmark = True
 
 
 if args.eval_only:
-    common_corrup_dir = 'checkpoints_hp/' + args.experiment + '/common_corruptions'
+    common_corrup_dir = 'checkpoints/' + args.experiment + '/common_corruptions'
     if not os.path.exists(common_corrup_dir):
         os.makedirs(common_corrup_dir)
     common_corrup_log = logger(os.path.join(common_corrup_dir))
 
-    robust_dir = 'checkpoints_hp/' + args.experiment + '/robust'
+    robust_dir = 'checkpoints/' + args.experiment + '/robust'
     if not os.path.exists(robust_dir):
         os.makedirs(robust_dir)
     robust_log = logger(os.path.join(robust_dir))
     AA_log = robust_dir + '/AA_details.txt'
 
-    result_dir = 'checkpoints_hp/' + args.experiment + '/result/'
+    result_dir = 'checkpoints/' + args.experiment + '/result/'
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     result_log = logger(os.path.join(result_dir))
@@ -130,18 +130,18 @@ if args.eval_only:
             log.info('corruption severity-{} acc: {:.2f}'.format(i+1, ood_acc_list[i] * 100))
     
 else:
-    common_corrup_dir = 'checkpoints_hp/' + args.experiment + '/common_corruptions'
+    common_corrup_dir = 'checkpoints/' + args.experiment + '/common_corruptions'
     if not os.path.exists(common_corrup_dir):
         os.makedirs(common_corrup_dir)
     common_corrup_log = logger(os.path.join(common_corrup_dir))
 
-    robust_dir = 'checkpoints_hp/' + args.experiment + '/robust'
+    robust_dir = 'checkpoints/' + args.experiment + '/robust'
     if not os.path.exists(robust_dir):
         os.makedirs(robust_dir)
     robust_log = logger(os.path.join(robust_dir))
     AA_log = robust_dir + '/AA_details.txt'
 
-    result_dir = 'checkpoints_hp/' + args.experiment + '/result/'
+    result_dir = 'checkpoints/' + args.experiment + '/result/'
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     result_log = logger(os.path.join(result_dir))

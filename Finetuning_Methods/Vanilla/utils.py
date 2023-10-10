@@ -726,7 +726,7 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
                                       alpha=args.step_size, iters=args.num_steps_train, forceEval=True).data
             output = model.eval()(data)
             loss = criterion(output, target)
-        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++',  'DynACL_IR','DynACL++_IR']:
+        if mode == 'AFF' and args.pretraining in ['ACL', 'DynACL', 'DynACL++', 'DynACL_IR','DynACL++_IR']:
             ####### For training the model has dual batchnorm  ########
             loss = trades_loss_dual(model=model,
                                    x_natural=data,
@@ -841,7 +841,6 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '40,60' 
         args.bnNameCnt = 1
 
-
     ####### Hyperparameter of DynACL ########
     elif args.pretraining in ['DynACL', 'DynACL++']:
         if mode in ['SLF', 'ALF']:
@@ -860,7 +859,7 @@ def setup_hyperparameter(args, mode):
             args.decreasing_lr = '15,20'
             args.lr = 0.1
         args.bnNameCnt = 1
-
+        # pass
     
     ####### Hyperparameter of AdvCL ########
     elif args.pretraining == 'AdvCL':
