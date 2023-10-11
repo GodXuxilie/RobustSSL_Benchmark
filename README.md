@@ -6,7 +6,7 @@ In this repo, we provide a benchmark for robustness transferability of robust pr
 
 We consider the following RobustSSL methods: 
 
-- [IR (Xu et al., NeurIPS'23a)](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/ACL_Methods/IR_nips2023)
+- [AIR (Xu et al., NeurIPS'23a)](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/ACL_Methods/IR_nips2023)
 - [RCS (Xu et al., NeurIPS'23b)](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/ACL_Methods/RCS_nips23)
 - [DynACL (Luo et al., ICLR'23)](https://github.com/PKU-ML/DYNACL) 
 - [A-InfoNCE (Yu et al., ECCV'22)](https://github.com/yqy2001/A-InfoNCE)
