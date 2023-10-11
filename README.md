@@ -164,6 +164,13 @@ If you fine the code is useful to you, please cite the following papers by copyi
 <!-- <details> <summary>BibTeX</summary> -->
 
 ```
+@article{xu2023autolora,
+  title={AutoLoRa: A Parameter-Free Automated Robust Fine-Tuning Framework},
+  author={Xu, Xilie and Zhang, Jingfeng and Kankanhalli, Mohan},
+  journal={arXiv preprint arXiv:2310.01818},
+  year={2023}
+}
+
 @inproceedings{xu2023RCS,
   title={Efficient Adversarial Contrastive Learning via Robustness-Aware Coreset Selection},
   author={Xu, Xilie and Zhang, Jingfeng and Liu, Feng and Sugiyama, Masashi and Kankanhalli, Mohan},
