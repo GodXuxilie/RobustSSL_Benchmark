@@ -16,7 +16,7 @@ We consider the following RobustSSL methods:
 
 <!-- - [RoCL (NeurIPS'20)](https://github.com/Kim-Minseon/RoCL) -->
 
-<details> <summary><b>Modle Zoo</b>: We released all the pre-trained checkpoints in <a href='https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0'>a Dropbox directory</a>.</summary> 
+<details> <summary><b>Modle Zoo</b>: We released all the pre-trained checkpoints in <a href='https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0'>Dropbox</a>.</summary> 
 <!-- Alternatively, you can copy the address of the ```link``` in the following table and then use ```wget link_address``` to download the specific pre-trained weight. -->
 
 | Pre-trained weights of ResNet-18 encoder | ACL ([Jiang et al., NeurIPS'20](https://proceedings.neurips.cc/paper/2020/hash/ba7e36c43aff315c00ec2b8625e3b719-Abstract.html)) | AdvCL ([Fan et al., NeurIPS'21](https://arxiv.org/abs/2111.01124)) | A-InfoNCE ([Yu et al., ECCV'22](https://arxiv.org/abs/2207.08374#:~:text=Contrastive%20learning%20(CL)%20has%20recently,other%2C%20yields%20better%20adversarial%20robustness)) | DeACL ([Zhang et al., ECCV'22](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136900716.pdf)) | DynACL ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL++ ([Luo et al., ICLR'23](https://openreview.net/forum?id=0qmwFNJyxCL&noteId=ZXhFXELOcQ)) | DynACL-AIR ([Xu et al., NeurIPS'23a](https://arxiv.org/abs/2305.00374)) | DynACL-AIR++ ([Xu et al., NeurIPS'23a](https://arxiv.org/abs/2305.00374)) | DynACL-RCS ([Xu et al., NeurIPS'23b](https://arxiv.org/pdf/2302.03857)) |
