@@ -4,6 +4,7 @@ import argparse
 import torch.backends.cudnn as cudnn
 import numpy as np
 from utils import train, get_loader, get_model,setup_hyperparameter, eval_test_nat, runAA, logger, eval_test_OOD, eval_adv_test
+import torch
 
 parser = argparse.ArgumentParser(
     description='Finetuning (SLF, ALF, AFF) and Evaluation')
@@ -15,10 +16,10 @@ parser.add_argument('--experiment', type=str,
 parser.add_argument('--model', type=str, default='r18')
 parser.add_argument('--checkpoint', default='', type=str,
                     help='path to pretrained model')
-parser.add_argument('--dualBN', type=int, default=1, 
+parser.add_argument('--dualBN', type=int, default=0, 
                     help='Whether to use dual BN module during fine-tuning')
 
-parser.add_argument('--data', type=str, default='/home/x/xuxilie/data',
+parser.add_argument('--data', type=str, default='../data',
                     help='location of the data')
 parser.add_argument('--dataset', default='cifar10', type=str,
                     help='dataset to be used (cifar10 or cifar100)')
@@ -80,32 +81,12 @@ parser.add_argument('--test_frequency', type=int, default=0,
                     help='validation frequency during finetuning, 0 for no evaluation')   
 
 parser.add_argument('--gpu', type=str, default='0', help='Set up the GPU id')
-parser.add_argument('--occupy', type=int, default=1, help='Set up the GPU id')
-parser.add_argument('--W', type=str, default='W2', help='Set up the GPU id')
 
 args = parser.parse_args()
 
-import torch
-
-def check_mem(cuda_device):
-    devices_info = os.popen('"/usr/bin/nvidia-smi" --query-gpu=memory.total,memory.used --format=csv,nounits,noheader').read().strip().split("\n")
-    total, used = devices_info[int(cuda_device)].split(',')
-    return total,used
-
-def occumpy_mem(cuda_device):
-    total, used = check_mem(cuda_device)
-    total = int(total)
-    used = int(used)
-    max_mem = int(total)
-    block_mem = int(max_mem * 0.7)
-    x = torch.cuda.FloatTensor(256,1024,block_mem)
-    del x
 
 # settings
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-print(args.gpu)
-if args.occupy:
-    occumpy_mem(args.gpu)
 model_dir = os.path.join('checkpoints', args.experiment)
 
 if not os.path.exists(model_dir):
