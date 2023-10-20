@@ -4,7 +4,7 @@ Xilie Xu (NUS), Jingfeng Zhang (The University of Auckland/RIKEN-AIP), Mohan Kan
 [[PDF](https://arxiv.org/abs/2310.01818)]
 
 <div align="center">
-    <img style='width: 80%' src="pic/intro.jpg" />
+    <img style='width: 70%' src="pic/intro.jpg" />
 </div>
 
 <br>
