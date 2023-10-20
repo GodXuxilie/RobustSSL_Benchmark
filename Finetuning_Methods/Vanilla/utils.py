@@ -42,8 +42,6 @@ class NormalizeByChannelMeanStd(nn.Module):
 
 
 def pgd_attack(model, images, labels, device, eps=8. / 255., alpha=2. / 255., iters=20, advFlag=None, forceEval=True, randomInit=True):
-    # images = images.to(device)
-    # labels = labels.to(device)
     loss = nn.CrossEntropyLoss()
 
     # init
@@ -65,7 +63,6 @@ def pgd_attack(model, images, labels, device, eps=8. / 255., alpha=2. / 255., it
 
         model.zero_grad()
         cost = loss(outputs, labels)
-        # cost.backward()
         delta_grad = torch.autograd.grad(cost, [delta])[0]
 
         delta.data = delta.data + alpha * delta_grad.sign()
