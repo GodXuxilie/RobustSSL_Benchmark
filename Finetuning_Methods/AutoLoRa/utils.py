@@ -62,13 +62,6 @@ class logger(object):
         with open(os.path.join(self.path, "log.txt"), 'a') as f:
             f.write(msg + "\n")
 
-def setup_seed(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.backends.cudnn.deterministic = True
-
 def normalize_fn(tensor, mean, std):
     """Differentiable version of torchvision.functional.normalize"""
     # here we assume the color channel is in at dim=1
@@ -85,48 +78,130 @@ class NormalizeByChannelMeanStd(nn.Module):
             std = torch.tensor(std)
         self.register_buffer("mean", mean)
         self.register_buffer("std", std)
-    
+
     def forward(self, tensor):
         return normalize_fn(tensor, self.mean, self.std)
 
     def extra_repr(self):
         return 'mean={}, std={}'.format(self.mean, self.std)
+
+def setup_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+
 # DeACL
 def load_BN_checkpoint_DeACL(args,state_dict):
-    new_state_dict = {}
-    new_state_dict_normal = {}
-    for k, v in state_dict.items():
-        if 'backbone.' in k:
-            k = k.replace('backbone.', '')
-        new_state_dict_normal[k] = v
-        new_state_dict[k] = v
+    if args.r_nat == 0:
+        new_state_dict = {}
+        new_state_dict_normal = {}
+        for k, v in state_dict.items():
+            if 'backbone.' in k:
+                k = k.replace('backbone.', '')
+            new_state_dict_normal[k] = v
+            new_state_dict[k] = v
+        return new_state_dict
+    else:
+        new_state_dict = {}
+        new_state_dict_normal = {}
+        for k, v in state_dict.items():
+            # print(k)
+            if 'backbone.' in k:
+                k = k.replace('backbone.', '')
+                if 'conv1.weight' in k and k != 'conv1.weight':
+                    k = k.replace('conv1.weight', 'conv1.conv.weight')
+                elif 'conv2.weight' in k:
+                    k = k.replace('conv2.weight', 'conv2.conv.weight')
+                elif 'conv3.weight' in k:
+                    k = k.replace('conv3.weight', 'conv3.conv.weight')
+                elif 'conv4.weight' in k:
+                    k = k.replace('conv4.weight', 'conv4.conv.weight')
+                elif 'downsample.0.weight' in k:
+                    k = k.replace('downsample.0.weight', 'downsample.0.conv.weight')
+
+            elif 'conv1.weight' in k and k != 'conv1.weight':
+                k = k.replace('conv1.weight', 'conv1.conv.weight')
+            elif 'conv2.weight' in k:
+                k = k.replace('conv2.weight', 'conv2.conv.weight')
+            elif 'conv3.weight' in k:
+                k = k.replace('conv3.weight', 'conv3.conv.weight')
+            elif 'conv4.weight' in k:
+                k = k.replace('conv4.weight', 'conv4.conv.weight')
+            elif 'downsample.0.weight' in k:
+                k = k.replace('downsample.0.weight', 'downsample.0.conv.weight')
+            new_state_dict_normal[k] = v
+            new_state_dict[k] = v
+        # print(k)
     return new_state_dict
 
 # AdvCL and A-InfoNCE
-def load_BN_checkpoint_AdvCL(args, state_dict):  
-    new_state_dict = {}
-    new_state_dict_normal = {}
-    for k, v in state_dict.items():
-        if 'downsample.bn.bn_list.0' in k:
-            k = k.replace('downsample.bn.bn_list.0', 'downsample.0')
-            new_state_dict_normal[k] = v
-        elif 'downsample.bn.bn_list.1' in k:
-            k = k.replace('downsample.bn.bn_list.1', 'downsample.1')
-            new_state_dict[k] = v
-        elif '.bn_list.0' in k:
-            k = k.replace('.bn_list.0', '')
-            new_state_dict_normal[k] = v
-        elif '.bn_list.1' in k:
-            k = k.replace('.bn_list.1', '')
-            new_state_dict[k] = v
-        elif 'downsample.conv' in k:
-            k = k.replace('downsample.conv', 'downsample.0')
-            new_state_dict_normal[k] = v
-            new_state_dict[k] = v
-        else:
-            new_state_dict_normal[k] = v
-            new_state_dict[k] = v
-    
+def load_BN_checkpoint_AdvCL(args, state_dict):
+    if args.r_nat == 0:
+        new_state_dict = {}
+        new_state_dict_normal = {}
+        for k, v in state_dict.items():
+            # if 'downsample' in k:
+                # k = k.replace('downsample', 'shortcut')
+            if 'downsample.bn.bn_list.0' in k:
+                k = k.replace('downsample.bn.bn_list.0', 'downsample.0')
+                new_state_dict_normal[k] = v
+            elif 'downsample.bn.bn_list.1' in k:
+                k = k.replace('downsample.bn.bn_list.1', 'downsample.1')
+                new_state_dict[k] = v
+            elif '.bn_list.0' in k:
+                k = k.replace('.bn_list.0', '')
+                new_state_dict_normal[k] = v
+            elif '.bn_list.1' in k:
+                k = k.replace('.bn_list.1', '')
+                new_state_dict[k] = v
+            elif 'downsample.conv' in k:
+                k = k.replace('downsample.conv', 'downsample.0')
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+            else:
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+    else:
+        new_state_dict = {}
+        new_state_dict_normal = {}
+        for k, v in state_dict.items():
+            if 'downsample.bn.bn_list.0' in k:
+                k = k.replace('downsample.bn.bn_list.0', 'downsample.0')
+                new_state_dict_normal[k] = v
+            elif 'downsample.bn.bn_list.1' in k:
+                k = k.replace('downsample.bn.bn_list.1', 'downsample.1')
+                new_state_dict[k] = v
+            elif '.bn_list.0' in k:
+                k = k.replace('.bn_list.0', '')
+                new_state_dict_normal[k] = v
+            elif '.bn_list.1' in k:
+                k = k.replace('.bn_list.1', '')
+                new_state_dict[k] = v
+            elif 'downsample.conv' in k:
+                k = k.replace('downsample.conv', 'downsample.0.conv')
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+            elif 'conv1.weight' in k and k != 'conv1.weight':
+                k = k.replace('conv1.weight', 'conv1.conv.weight')
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+            elif 'conv2.weight' in k:
+                k = k.replace('conv2.weight', 'conv2.conv.weight')
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+            elif 'conv3.weight' in k:
+                k = k.replace('conv3.weight', 'conv3.conv.weight')
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+            elif 'conv4.weight' in k:
+                k = k.replace('conv4.weight', 'conv4.conv.weight')
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
+            else:
+                new_state_dict_normal[k] = v
+                new_state_dict[k] = v
     return new_state_dict
 
 # DeACL
@@ -146,84 +221,201 @@ def load_BN_checkpoint_lora(state_dict):
             k = k.replace('downsample.conv.weight', 'downsample.conv.conv.weight')
         new_state_dict_normal[k] = v
         new_state_dict[k] = v
+        # print(k)
     return new_state_dict, new_state_dict_normal
 
 def cvt_state_dict(state_dict, args, num_classes):
-    state_dict_new = copy.deepcopy(state_dict)
-    if args.bnNameCnt >= 0:
-        for name, item in state_dict.items():
-            if 'bn' in name:
-                assert 'bn_list' in name
+    # deal with adv bn
+    if args.autolora:
+        state_dict_new = copy.deepcopy(state_dict)
+
+        if args.bnNameCnt >= 0:
+            for name, item in state_dict.items():
+                if 'bn' in name:
+                    assert 'bn_list' in name
+                    state_dict_new[name.replace(
+                        '.bn_list.{}'.format(args.bnNameCnt), '')] = item
+
+        name_to_del = []
+        for name, item in state_dict_new.items():
+            if 'bn' in name and 'adv' in name:
+                name_to_del.append(name)
+            if 'bn_list' in name:
+                name_to_del.append(name)
+            if 'fc' in name:
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
+
+        # deal with down sample layer
+        keys = list(state_dict_new.keys())[:]
+        name_to_del = []
+        for name in keys:
+            if 'downsample.conv' in name:
                 state_dict_new[name.replace(
-                    '.bn_list.{}'.format(args.bnNameCnt), '')] = item
+                    'downsample.conv', 'downsample.0.conv')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'downsample.bn' in name:
+                state_dict_new[name.replace(
+                    'downsample.bn', 'downsample.1')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv1.weight' in name and name != 'conv1.weight': 
+                state_dict_new[name.replace(
+                    'conv1.weight', 'conv1.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv2.weight' in name:
+                state_dict_new[name.replace(
+                    'conv2.weight', 'conv2.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv3.weight' in name:
+                state_dict_new[name.replace(
+                    'conv3.weight', 'conv3.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv4.weight' in name:
+                state_dict_new[name.replace(
+                    'conv4.weight', 'conv4.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
 
-    name_to_del = []
-    for name, item in state_dict_new.items():
-        if 'bn' in name and 'adv' in name:
-            name_to_del.append(name)
-        if 'bn_list' in name:
-            name_to_del.append(name)
-        if 'fc' in name:
-            name_to_del.append(name)
-    for name in np.unique(name_to_del):
-        del state_dict_new[name]
+        # zero init fc
+        state_dict_new['fc.weight'] = torch.zeros(num_classes, 512).cuda()
+        state_dict_new['fc.bias'] = torch.zeros(num_classes).cuda()
+    else:
+        state_dict_new = copy.deepcopy(state_dict)
+        if args.bnNameCnt >= 0:
+            for name, item in state_dict.items():
+                if 'bn' in name:
+                    assert 'bn_list' in name
+                    state_dict_new[name.replace(
+                        '.bn_list.{}'.format(args.bnNameCnt), '')] = item
 
-    # deal with down sample layer
-    keys = list(state_dict_new.keys())[:]
-    name_to_del = []
-    for name in keys:
-        if 'downsample.conv' in name:
-            state_dict_new[name.replace(
-                'downsample.conv', 'downsample.0')] = state_dict_new[name]
-            name_to_del.append(name)
-        if 'downsample.bn' in name:
-            state_dict_new[name.replace(
-                'downsample.bn', 'downsample.1')] = state_dict_new[name]
-            name_to_del.append(name)
-    for name in np.unique(name_to_del):
-        del state_dict_new[name]
-    state_dict_new['fc.weight'] = torch.zeros(num_classes, 512).cuda()
-    state_dict_new['fc.bias'] = torch.zeros(num_classes).cuda()
+        name_to_del = []
+        for name, item in state_dict_new.items():
+            if 'bn' in name and 'adv' in name:
+                name_to_del.append(name)
+            if 'bn_list' in name:
+                name_to_del.append(name)
+            if 'fc' in name:
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
+
+        # deal with down sample layer
+        keys = list(state_dict_new.keys())[:]
+        name_to_del = []
+        for name in keys:
+            if 'downsample.conv' in name:
+                state_dict_new[name.replace(
+                    'downsample.conv', 'downsample.0')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'downsample.bn' in name:
+                state_dict_new[name.replace(
+                    'downsample.bn', 'downsample.1')] = state_dict_new[name]
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
+        state_dict_new['fc.weight'] = torch.zeros(num_classes, 512).cuda()
+        state_dict_new['fc.bias'] = torch.zeros(num_classes).cuda()
     return state_dict_new
 
 def cvt_state_dict_AFF(state_dict, args):
-    state_dict_new = copy.deepcopy(state_dict)
+    # deal with adv bn
+    
+    if args.autolora:
+        state_dict_new = copy.deepcopy(state_dict)
 
-    if args.bnNameCnt >= 0:
-        for name, item in state_dict.items():
-            if 'bn' in name:
-                assert 'bn_list' in name
+        if args.bnNameCnt >= 0:
+            for name, item in state_dict.items():
+                if 'bn' in name:
+                    assert 'bn_list' in name
+                    state_dict_new[name.replace(
+                        '.bn_list.{}'.format(args.bnNameCnt), '')] = item
+
+        name_to_del = []
+        for name, item in state_dict_new.items():
+            if 'bn' in name and 'adv' in name:
+                name_to_del.append(name)
+            if 'bn_list' in name:
+                name_to_del.append(name)
+            if 'fc' in name:
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
+
+        # deal with down sample layer
+        keys = list(state_dict_new.keys())[:]
+        name_to_del = []
+        for name in keys:
+            if 'downsample.conv' in name:
                 state_dict_new[name.replace(
-                    '.bn_list.{}'.format(args.bnNameCnt), '')] = item
+                    'downsample.conv', 'downsample.0')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'downsample.bn' in name:
+                state_dict_new[name.replace(
+                    'downsample.bn', 'downsample.1')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv1.weight' in name and name != 'conv1.weight': 
+                state_dict_new[name.replace(
+                    'conv1.weight', 'conv1.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv2.weight' in name:
+                state_dict_new[name.replace(
+                    'conv2.weight', 'conv2.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv3.weight' in name:
+                state_dict_new[name.replace(
+                    'conv3.weight', 'conv3.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'conv4.weight' in name:
+                state_dict_new[name.replace(
+                    'conv4.weight', 'conv4.conv.weight')] = state_dict_new[name]
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
 
-    name_to_del = []
-    for name, item in state_dict_new.items():
-        if 'bn' in name and 'adv' in name:
-            name_to_del.append(name)
-        if 'bn_list' in name:
-            name_to_del.append(name)
-        if 'fc' in name:
-            name_to_del.append(name)
-    for name in np.unique(name_to_del):
-        del state_dict_new[name]
+        state_dict_new['fc.weight'] = state_dict['fc.weight']
+        state_dict_new['fc.bias'] = state_dict['fc.bias']
 
-    # deal with down sample layer
-    keys = list(state_dict_new.keys())[:]
-    name_to_del = []
-    for name in keys:
-        if 'downsample.conv' in name:
-            state_dict_new[name.replace(
-                'downsample.conv', 'downsample.0')] = state_dict_new[name]
-            name_to_del.append(name)
-        if 'downsample.bn' in name:
-            state_dict_new[name.replace(
-                'downsample.bn', 'downsample.1')] = state_dict_new[name]
-            name_to_del.append(name)
-    for name in np.unique(name_to_del):
-        del state_dict_new[name]
+    else:
+        state_dict_new = copy.deepcopy(state_dict)
 
-    state_dict_new['fc.weight'] = state_dict['fc.weight']
-    state_dict_new['fc.bias'] = state_dict['fc.bias']
+        if args.bnNameCnt >= 0:
+            for name, item in state_dict.items():
+                if 'bn' in name:
+                    assert 'bn_list' in name
+                    state_dict_new[name.replace(
+                        '.bn_list.{}'.format(args.bnNameCnt), '')] = item
+
+        name_to_del = []
+        for name, item in state_dict_new.items():
+            if 'bn' in name and 'adv' in name:
+                name_to_del.append(name)
+            if 'bn_list' in name:
+                name_to_del.append(name)
+            if 'fc' in name:
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
+
+        # deal with down sample layer
+        keys = list(state_dict_new.keys())[:]
+        name_to_del = []
+        for name in keys:
+            if 'downsample.conv' in name:
+                state_dict_new[name.replace(
+                    'downsample.conv', 'downsample.0')] = state_dict_new[name]
+                name_to_del.append(name)
+            if 'downsample.bn' in name:
+                state_dict_new[name.replace(
+                    'downsample.bn', 'downsample.1')] = state_dict_new[name]
+                name_to_del.append(name)
+        for name in np.unique(name_to_del):
+            del state_dict_new[name]
+
+        state_dict_new['fc.weight'] = state_dict['fc.weight']
+        state_dict_new['fc.bias'] = state_dict['fc.bias']
+
     return state_dict_new
 
 
@@ -287,7 +479,7 @@ def eval_adv_test(model, device, test_loader, epsilon, alpha, criterion, log, at
                                eps=epsilon, iters=attack_iter, alpha=alpha, advFlag=bn_name).data
         with torch.no_grad():
             if bn_name is not None:
-                output = model.eval()(input_adv, bn_name=bn_name)
+                output = model.eval()(input_adv, bn_name=bn_name, thread=None)
             else:
                 output = model.eval()(input_adv)
             loss = criterion(output, target)
@@ -331,7 +523,7 @@ def clean_accuracy(model: nn.Module,
                        batch_size].to(device)
 
             if advFlag is not None:
-                output = model.eval()(x_curr, advFlag)
+                output = model.eval()([x_curr, advFlag])
             else:
                 output = model.eval()(x_curr)
             # output = model(x_curr,advFlag=advFlag)
@@ -349,7 +541,7 @@ def eval_test_nat(model, test_loader, device, advFlag=None,natural_mode=None):
          labels = labels.to(device)
          with torch.no_grad():
             if natural_mode is not None:
-                output = model.eval()(images,bn_name=natural_mode)
+                output = model.eval()(images,bn_name=natural_mode,thread=advFlag)
             else:
                 output = model.eval()(images)
             acc += (output.max(1)[1] == labels).float().sum()
@@ -395,7 +587,7 @@ def runAA(args, model, test_loader, log_path, advFlag=None):
         xadv = adversary.run_standard_evaluation(images, labels, bs=128)
         with torch.no_grad():
             if advFlag is not None:
-                output = model.eval()(xadv, advFlag)
+                output = model.eval()([xadv, advFlag])
             else:
                 output = model.eval()(xadv)
         acc += (output.max(1)[1] == labels).float().sum()
@@ -461,17 +653,33 @@ def get_loader(args):
     return train_loader, vali_loader, test_loader, num_classes, args
 
 def get_model(args, num_classes, mode, log, device='cuda'):
-    if not args.dualBN or mode in ['eval', 'ALF', 'SLF']:
-        if args.dataset == 'stl10' and args.resize == 96:
-            from models.resnet_stl import resnet18, resnet34, resnet50
+    if args.autolora: 
+        ### AutoLoRa uses a LoRa module during finetuning ###
+        if not args.dualBN or mode in ['eval', 'ALF', 'SLF']:
+            if args.dataset == 'stl10' and args.resize == 96:
+                from models.resnet_stl_lora import resnet18, resnet34, resnet50
+            else:
+                from models.resnet_lora import resnet18, resnet34, resnet50
         else:
-            from models.resnet import resnet18, resnet34, resnet50
+            bn_names = ['normal', 'pgd']
+            if args.dataset == 'stl10' and args.resize == 96:
+                from models.resnet_multi_bn_stl_lora import resnet18, resnet34, resnet50
+            else:
+                from models.resnet_multi_bn_lora import resnet18, resnet34, resnet50
     else:
-        bn_names = ['normal', 'pgd']
-        if args.dataset == 'stl10' and args.resize == 96:
-            from models.resnet_multi_bn_stl import resnet18, resnet34, resnet50
+        print(args.r_nat)
+        ### Vanilla finetuning ###
+        if not args.dualBN or mode in ['eval', 'ALF', 'SLF']:
+            if args.dataset == 'stl10' and args.resize == 96:
+                from models.resnet_stl import resnet18, resnet34, resnet50
+            else:
+                from models.resnet import resnet18, resnet34, resnet50
         else:
-            from models.resnet_multi_bn import resnet18, resnet34, resnet50
+            bn_names = ['normal', 'pgd']
+            if args.dataset == 'stl10' and args.resize == 96:
+                from models.resnet_multi_bn_stl import resnet18, resnet34, resnet50
+            else:
+                from models.resnet_multi_bn import resnet18, resnet34, resnet50
 
     ####### set do_normalize=1 if your model needs to normalize the input, otherwise set do_normalize=0 ########
     if args.pretraining in ['AdvCL', 'A-InfoNCE']:
@@ -486,10 +694,16 @@ def get_model(args, num_classes, mode, log, device='cuda'):
     elif args.model == 'r50':
         model_arch = resnet50
 
-    if args.dualBN and mode == 'AFF':
-        model = model_arch(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+    if args.r_nat > 0:
+        if args.dualBN and mode == 'AFF':
+            model = model_arch(pretrained=False, bn_names=bn_names, num_classes=num_classes, r_nat=args.r_nat, r_adv=0).to(device)
+        else:
+            model = model_arch(num_classes=num_classes, do_normalize=do_normalize, r_nat=args.r_nat, r_adv=0).to(device)
     else:
-        model = model_arch(num_classes=num_classes, do_normalize=do_normalize).to(device)
+        if args.dualBN and mode == 'AFF':
+            model = model_arch(pretrained=False, bn_names=bn_names, num_classes=num_classes).to(device)
+        else:
+            model = model_arch(num_classes=num_classes, do_normalize=do_normalize).to(device)
 
     if mode in ['SLF', 'ALF']:
         for name, param in model.named_parameters():
@@ -544,6 +758,8 @@ def get_model(args, num_classes, mode, log, device='cuda'):
                 state_dict = load_BN_checkpoint_AdvCL(args, state_dict)
             elif args.pretraining == 'DeACL':
                 state_dict = load_BN_checkpoint_DeACL(args, state_dict)
+            elif args.dualBN and args.autolora:
+                state_dict, _ = load_BN_checkpoint_lora(state_dict)  
             elif not args.dualBN and args.pretraining in ['ACL','DynACL','DynACL++','DynACL_AIR','ACL_AIR','DynACL_AIR++','DynACL_RCS'] :
                 args.bnNameCnt = 1
                 state_dict = cvt_state_dict(state_dict, args, num_classes=num_classes)
@@ -552,10 +768,70 @@ def get_model(args, num_classes, mode, log, device='cuda'):
             model.load_state_dict(state_dict, strict=False)
             log.info('read checkpoint {}'.format(args.checkpoint))
 
-        for name, param in model.named_parameters():
-            if name not in state_dict.keys():
-                log.info('Warning: Missing {} when loading state dict.'.format(name))
+        # for name, param in model.named_parameters():
+            # if name in state_dict.keys():
+                # print(name)
+            # else:
+                # print('miss', name)
+            # print(name, param.shape)
+        # print(state_dict.keys())
+       
     return model, optimizer, scheduler
+
+
+def trades_loss_autolora(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, perturb_steps=10, beta=6.0, distance='l_inf', LAMBDA1=0, LAMBDA2=0):
+    batch_size = len(x_natural)
+    # define KL-loss
+    criterion_kl = nn.KLDivLoss(size_average=False)
+    model.eval()
+
+    # generate adversarial example
+    x_adv = x_natural.detach() + 0.001 * torch.randn(x_natural.shape).cuda().detach()
+    if distance == 'l_inf':
+        for _ in range(perturb_steps):
+            x_adv.requires_grad_()
+            with torch.enable_grad():
+                model.eval()
+                loss_kl = F.cross_entropy(model(x_adv, thread=None), y)
+            grad = torch.autograd.grad(loss_kl, [x_adv])[0]
+            x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
+            x_adv = torch.min(torch.max(x_adv, x_natural -
+                              epsilon), x_natural + epsilon)
+            x_adv = torch.clamp(x_adv, 0.0, 1.0)
+    else:
+        assert False
+
+    x_adv = Variable(torch.clamp(x_adv, 0.0, 1.0), requires_grad=False)
+
+    # zero gradient
+    model.zero_grad()
+    optimizer.zero_grad()
+    model.train()
+    # calculate robust loss
+    for n,p in model.named_parameters():
+        if 'fc' in n:
+            p.requires_grad = True
+        elif 'lora' in n:
+            p.requires_grad = True
+        else:
+            p.requires_grad = False
+    nat_output = model(x_natural, thread='nat')
+
+    for n,p in model.named_parameters():
+        if 'lora' in n:
+            p.requires_grad = False
+        else:
+            p.requires_grad = True
+    adv_output= model(x_adv, thread=None)
+
+    for n,p in model.named_parameters():
+        p.requires_grad = True
+
+    loss = LAMBDA1 * F.cross_entropy(nat_output, y) \
+        + (1 - LAMBDA1) * F.cross_entropy(adv_output, y) \
+        + LAMBDA2 *  (1.0 / batch_size) * criterion_kl(F.log_softmax(adv_output, dim=1), F.softmax(nat_output, dim=1))
+    
+    return loss
 
 def trades_loss(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, perturb_steps=10, beta=6.0, distance='l_inf'):
     batch_size = len(x_natural)
@@ -595,6 +871,62 @@ def trades_loss(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, 
     LAMBDA1 = 1
     LAMBDA2 = 6
     loss = LAMBDA1 * F.cross_entropy(nat_output, y) \
+        + LAMBDA2 *  (1.0 / batch_size) * criterion_kl(F.log_softmax(adv_output, dim=1), F.softmax(nat_output, dim=1))
+    
+    return loss
+
+def trades_loss_dual_autolora(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/255, perturb_steps=10, beta=6.0, distance='l_inf', natural_mode='normal', LAMBDA1=0, LAMBDA2=0):
+    batch_size = len(x_natural)
+    # define KL-loss
+    criterion_kl = nn.KLDivLoss(size_average=False)
+    model.eval()
+
+    # generate adversarial example
+    x_adv = x_natural.detach() + 0.001 * torch.randn(x_natural.shape).cuda().detach()
+    if distance == 'l_inf':
+        for _ in range(perturb_steps):
+            x_adv.requires_grad_()
+            with torch.enable_grad():
+                model.eval()
+                # loss_kl = criterion_kl(F.log_softmax(model(x_adv,bn_name='pgd', thread=None), dim=1),
+                                    #    F.softmax(model(x_natural,bn_name=natural_mode, thread='nat'), dim=1))
+                loss_kl = F.cross_entropy(model(x_adv,bn_name='pgd',thread=None), y)
+            grad = torch.autograd.grad(loss_kl, [x_adv])[0]
+            x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
+            x_adv = torch.min(torch.max(x_adv, x_natural -
+                              epsilon), x_natural + epsilon)
+            x_adv = torch.clamp(x_adv, 0.0, 1.0)
+    else:
+        assert False
+
+    x_adv = Variable(torch.clamp(x_adv, 0.0, 1.0), requires_grad=False)
+
+    # zero gradient
+    model.zero_grad()
+    optimizer.zero_grad()
+    model.train()
+    # calculate robust loss
+    for n,p in model.named_parameters():
+        if 'fc' in n:
+            p.requires_grad = True
+        elif 'lora' in n:
+            p.requires_grad = True
+        else:
+            p.requires_grad = False
+    nat_output = model(x_natural, bn_name=natural_mode, thread='nat')
+
+    for n,p in model.named_parameters():
+        if 'lora' in n:
+            p.requires_grad = False
+        else:
+            p.requires_grad = True
+    adv_output= model(x_adv, bn_name='pgd', thread=None)
+
+    for n,p in model.named_parameters():
+        p.requires_grad = True
+
+    loss = LAMBDA1 * F.cross_entropy(nat_output, y) \
+        + (1 - LAMBDA1) * F.cross_entropy(adv_output, y) \
         + LAMBDA2 *  (1.0 / batch_size) * criterion_kl(F.log_softmax(adv_output, dim=1), F.softmax(nat_output, dim=1))
     
     return loss
@@ -642,6 +974,20 @@ def trades_loss_dual(model, x_natural, y, optimizer, step_size=2/255, epsilon=8/
 
 
 def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='ALF'):
+    scale = args.scale
+    if mode == 'AFF' and args.r_nat > 0:
+        model.eval()
+        if args.dualBN:
+            va_acc_nat_branch = eval_test_nat(model, train_loader, device, 'nat', natural_mode='normal')
+        else:
+            va_acc_nat_branch = eval_test_nat(model, train_loader, device, 'nat')
+        LAMBDA1 = 1 - va_acc_nat_branch
+        LAMBDA2 = va_acc_nat_branch * scale
+        log.info('Lambda_1: {}\t Lambda_2: {} \t scale: {}'.format(LAMBDA1, LAMBDA2, scale))
+        model.train()
+        model.zero_grad()
+        optimizer.zero_grad()
+
     if mode in ['SLF', 'ALF']:
         model.eval()
         parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
@@ -673,23 +1019,46 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
             loss = criterion(output, target)
             
         if mode == 'AFF':
-            ### Vanilla finetuning ###
-            if args.dualBN:
-                loss = trades_loss_dual(model=model,
-                            x_natural=data,
-                            y=target,
-                            optimizer=optimizer,
-                            step_size=args.step_size,
-                            epsilon=args.epsilon,
-                            perturb_steps=args.num_steps_train)
+            if args.r_nat > 0:
+                ### AutoLoRa ###
+                if args.dualBN:
+                    loss = trades_loss_dual_autolora(model=model,
+                                x_natural=data,
+                                y=target,
+                                optimizer=optimizer,
+                                step_size=args.step_size,
+                                epsilon=args.epsilon,
+                                perturb_steps=args.num_steps_train,
+                                LAMBDA1=LAMBDA1,
+                                LAMBDA2=LAMBDA2)
+                else:
+                    loss = trades_loss_autolora(model=model,
+                                x_natural=data,
+                                y=target,
+                                optimizer=optimizer,
+                                step_size=args.step_size,
+                                epsilon=args.epsilon,
+                                perturb_steps=args.num_steps_train,
+                                LAMBDA1=LAMBDA1,
+                                LAMBDA2=LAMBDA2)
             else:
-                loss = trades_loss(model=model,
-                            x_natural=data,
-                            y=target,
-                            optimizer=optimizer,
-                            step_size=args.step_size,
-                            epsilon=args.epsilon,
-                            perturb_steps=args.num_steps_train)
+                ### Vanilla finetuning ###
+                if args.dualBN:
+                    loss = trades_loss_dual(model=model,
+                                x_natural=data,
+                                y=target,
+                                optimizer=optimizer,
+                                step_size=args.step_size,
+                                epsilon=args.epsilon,
+                                perturb_steps=args.num_steps_train)
+                else:
+                    loss = trades_loss(model=model,
+                                x_natural=data,
+                                y=target,
+                                optimizer=optimizer,
+                                step_size=args.step_size,
+                                epsilon=args.epsilon,
+                                perturb_steps=args.num_steps_train)
     
         optimizer.zero_grad()
         loss.backward()
@@ -705,6 +1074,17 @@ def train_loop(args, model, device, train_loader, optimizer, epoch, log, mode='A
             log.info('{} Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal time: {:.3f}'.format(
                 mode, epoch, batch_idx * len(data), len(train_loader.dataset),
                      100. * batch_idx / len(train_loader), loss_sum/count, totalTimeAve.avg))
+            if mode == 'AFF' and args.r_nat > 0:
+                if args.dualBN:
+                    va_acc_nat_branch = eval_test_nat(model, train_loader, device, 'nat', natural_mode='normal')
+                else:
+                    va_acc_nat_branch = eval_test_nat(model, train_loader, device, 'nat')
+                LAMBDA1 = 1 - va_acc_nat_branch
+                LAMBDA2 = va_acc_nat_branch * scale
+                log.info('Lambda_1: {}\t Lambda_2: {} \t scale: {}'.format(LAMBDA1, LAMBDA2, scale))
+                model.train()
+                model.zero_grad()
+                optimizer.zero_grad()
         
     return model
 
@@ -712,6 +1092,25 @@ def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, de
     best_atacc = 0.0
     best_acc = 0.0
 
+    if args.autoLR:
+        ### Setup configurations for automatic learning rate scheduler ###
+        if mode in ['SLF', 'ALF']:
+            W = torch.LongTensor([4 * i for i in range(int(args.epochs/4)+1)])
+        if mode in ['AFF']:
+            W = torch.LongTensor([0,16,24,28,36,40,42,44,46,48,50])
+
+        log.info('W:{}'.format(W))
+        w_index = 1
+        eta = 0.1
+        eta_list = torch.Tensor([0]*len(W))
+        eta_list[0] = eta
+        max_acc = -1
+        rho = 0.75
+        loss_list = torch.zeros(size=(1, args.epochs+1)).squeeze().cuda()
+        loss_min_list = torch.Tensor([0]*len(W))
+        for param_group in optimizer.param_groups:
+            param_group["lr"] = eta 
+        
     for epoch in range(1, args.epochs + 1):
         
         log.info("current lr is {}".format(
@@ -720,8 +1119,70 @@ def train(args, model, optimizer, scheduler, train_loader, test_loader, mode, de
         # finetuning
         model = train_loop(args, model, device, train_loader, optimizer, epoch, log, mode)
         
-       
-        scheduler.step()
+        # adjust learning rate for SGD
+        if args.autoLR:
+            ### Update the learning rate automatically ###
+            if args.dualBN and mode == 'AFF':
+                state_dict = model.state_dict()
+                args.bnNameCnt = 1
+                state_dict = cvt_state_dict_AFF(state_dict, args)
+                if args.dataset == 'stl10' and args.resize == 96:
+                    from models.resnet_stl import resnet18, resnet34, resnet50
+                else:
+                    from models.resnet import resnet18, resnet34, resnet50
+                if args.model == 'r18':
+                    temp_model = resnet18
+                if args.model == 'r34':
+                    temp_model = resnet34
+                if args.model == 'r50':
+                    temp_model = resnet50
+                temp_model = temp_model(num_classes=args.num_classes, do_normalize=1, r_nat=args.r_nat, r_adv=0).to(device)
+                temp_model.load_state_dict(state_dict)
+                temp_model.eval()
+                va_adv_acc = eval_adv_test(temp_model, device, vali_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=F.cross_entropy, log=log, attack_iter=args.num_steps_test)
+            else:
+                model.eval()
+                va_adv_acc = eval_adv_test(model, device, vali_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=F.cross_entropy, log=log, attack_iter=args.num_steps_test)
+            model.train()
+            model.zero_grad()
+            optimizer.zero_grad()
+
+            loss_list[epoch-1] = va_adv_acc
+            if  va_adv_acc > max_acc:
+                loss_min_list[w_index] = va_adv_acc
+                max_acc = va_adv_acc
+                file_name = os.path.join(model_dir, '{}_model_bestAT_val.pt'.format(mode))
+                torch.save(model.state_dict(), file_name)
+
+            if epoch -1 == W[w_index]:
+                w_j_0 = W[w_index-1].item()
+                w_j_1 = W[w_index].item() 
+                count = 0
+                for j in range(w_j_0, w_j_1, 1):
+                    if loss_list[j+1] > loss_list[j]:
+                        count += 1
+                if count < rho * (w_j_1 - w_j_0):
+                    eta /= args.divide
+                    eta_list[w_index] = eta
+                    model.load_state_dict(torch.load(os.path.join(model_dir, '{}_model_bestAT_val.pt'.format(mode))))
+                    log.info('Satisfy condition 1! divide: {}'.format(args.divide))
+                elif eta_list[w_index] == eta_list[w_index-1] and loss_min_list[w_index] == loss_min_list[w_index-1]:
+                    eta /= args.divide
+                    eta_list[w_index] = eta
+                    model.load_state_dict(torch.load(os.path.join(model_dir, '{}_model_bestAT_val.pt'.format(mode))))
+                    log.info('Satisfy condition 2! divide: {}'.format(args.divide))
+
+                if w_index < len(W) - 1:
+                    w_index += 1
+                    loss_min_list[w_index] = loss_min_list[w_index-1]
+                    eta_list[w_index] = eta_list[w_index-1]
+
+                for param_group in optimizer.param_groups:
+                    param_group["lr"] = eta 
+        else:
+            scheduler.step()
 
         # evaluation
         if (not args.test_frequency == 0) and (epoch % args.test_frequency == 1 or args.test_frequency == 1):
@@ -772,13 +1233,22 @@ def save_checkpoint(args, model, model_dir, mode, device):
         state_dict = model.state_dict()
         args.bnNameCnt = 1
         state_dict = cvt_state_dict_AFF(state_dict, args)
-        if args.dataset == 'stl10' and args.resize == 96:
-            print('ssss')
-            from models.resnet_stl import resnet18, resnet34, resnet50
+        if args.autolora:
+            if args.dataset == 'stl10' and args.resize == 96:
+                from models.resnet_stl_lora import resnet18, resnet34, resnet50
+            else:
+                from models.resnet_lora import resnet18, resnet34, resnet50
         else:
-            from models.resnet import resnet18, resnet34, resnet50
+            if args.dataset == 'stl10' and args.resize == 96:
+                print('ssss')
+                from models.resnet_stl import resnet18, resnet34, resnet50
+            else:
+                from models.resnet import resnet18, resnet34, resnet50
         if args.model == 'r18':
-            model = resnet18(num_classes=args.num_classes, do_normalize=1).to(device)
+            if args.autolora:
+                model = resnet18(num_classes=args.num_classes, do_normalize=1, r_nat=args.r_nat, r_adv=0).to(device)
+            else:
+                model = resnet18(num_classes=args.num_classes, do_normalize=1).to(device)
             model.load_state_dict(state_dict)
             model.eval()
     else:

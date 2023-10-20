@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.hub import load_state_dict_from_url
 from utils import NormalizeByChannelMeanStd
-
+from .LoRA import Conv2d
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152', 'resnext50_32x4d', 'resnext101_32x8d',
@@ -22,15 +22,15 @@ model_urls = {
 }
 
 
-def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
+def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1, r_adv=4, r_nat=4):
     """3x3 convolution with padding"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=dilation, groups=groups, bias=False, dilation=dilation)
+    return Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=dilation, groups=groups, bias=False, dilation=dilation, r_adv=r_adv, r_nat=r_nat)
 
 
-def conv1x1(in_planes, out_planes, stride=1):
+def conv1x1(in_planes, out_planes, stride=1, r_adv=4, r_nat=4):
     """1x1 convolution"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+    return Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False, r_adv=r_adv, r_nat=r_nat)
 
 
 class BasicBlock(nn.Module):
@@ -38,7 +38,7 @@ class BasicBlock(nn.Module):
     __constants__ = ['downsample']
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None):
+                 base_width=64, dilation=1, norm_layer=None, r_adv=4, r_nat=4):
         super(BasicBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -47,31 +47,37 @@ class BasicBlock(nn.Module):
         if dilation > 1:
             raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.conv1 = conv3x3(inplanes, planes, stride, r_adv=r_adv, r_nat=r_nat)
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes)
+        self.conv2 = conv3x3(planes, planes, r_adv=r_adv, r_nat=r_nat)
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
 
     def forward(self, x):
+        thread = None
+        if isinstance(x, list):
+            thread = x[1]
+            x = x[0]
+        # print('layer:', x.shape, thread)
         identity = x
 
-        out = self.conv1(x)
+        out = self.conv1(x, thread=thread)
         out = self.bn1(out)
         out = self.relu(out)
 
-        out = self.conv2(out)
+        out = self.conv2(out, thread=thread)
         out = self.bn2(out)
 
         if self.downsample is not None:
-            identity = self.downsample(x)
+            identity = self.downsample[0](x, thread)
+            identity = self.downsample[1](identity)
 
         out += identity
         out = self.relu(out)
 
-        return out
+        return [out, thread]
 
 
 class Bottleneck(nn.Module):
@@ -79,63 +85,72 @@ class Bottleneck(nn.Module):
     __constants__ = ['downsample']
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None):
+                 base_width=64, dilation=1, norm_layer=None,  r_adv=4, r_nat=4):
         super(Bottleneck, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         width = int(planes * (base_width / 64.)) * groups
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv1x1(inplanes, width)
+        self.conv1 = conv1x1(inplanes, width, r_adv=r_adv, r_nat=r_nat)
         self.bn1 = norm_layer(width)
-        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+        self.conv2 = conv3x3(width, width, stride, groups, dilation, r_adv=r_adv, r_nat=r_nat)
         self.bn2 = norm_layer(width)
-        self.conv3 = conv1x1(width, planes * self.expansion)
+        self.conv3 = conv1x1(width, planes * self.expansion, r_adv=r_adv, r_nat=r_nat)
         self.bn3 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
 
     def forward(self, x):
+
+        print('layer:',x.shape, thread)
+        if isinstance(x, list):
+            thread = x[1]
+            x = x[0]
+        
         identity = x
 
-        out = self.conv1(x)
+        out = self.conv1(x, thread=thread)
         out = self.bn1(out)
         out = self.relu(out)
 
-        out = self.conv2(out)
+        out = self.conv2(out, thread=thread)
         out = self.bn2(out)
         out = self.relu(out)
 
-        out = self.conv3(out)
+        out = self.conv3(out, thread=thread)
         out = self.bn3(out)
 
         if self.downsample is not None:
-            identity = self.downsample(x)
+            identity = self.downsample[0](x, thread)
+            identity = self.downsample[1](identity)
 
         out += identity
         out = self.relu(out)
 
-        return out
+        return [out,]
 
 
 class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
-                 norm_layer=None):
+                 norm_layer=None, do_normalize=1, r_adv=0, r_nat=8):
         super(ResNet, self).__init__()
+
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
         self.normalize = NormalizeByChannelMeanStd(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.do_normalize = do_normalize
 
         self.inplanes = 64
         self.dilation = 1
+        self.r_adv = r_adv
+        self.r_nat = r_nat
         if replace_stride_with_dilation is None:
-            # each element in the tuple indicates if we should replace
-            # the 2x2 stride with a dilated convolution instead
             replace_stride_with_dilation = [False, False, False]
         if len(replace_stride_with_dilation) != 3:
             raise ValueError("replace_stride_with_dilation should be None "
@@ -143,11 +158,10 @@ class ResNet(nn.Module):
         self.groups = groups
         self.base_width = width_per_group
 
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3,
-                               bias=False)
+        self.conv1 = nn.Conv2d(3, self.inplanes, 3, 1, 1, bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.maxpool = nn.Identity()
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
@@ -184,25 +198,26 @@ class ResNet(nn.Module):
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
+                conv1x1(self.inplanes, planes * block.expansion, stride, r_adv=self.r_adv, r_nat=self.r_nat),
                 norm_layer(planes * block.expansion),
             )
 
         layers = []
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
-                            self.base_width, previous_dilation, norm_layer))
+                            self.base_width, previous_dilation, norm_layer, r_adv=self.r_adv, r_nat=self.r_nat))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, groups=self.groups,
                                 base_width=self.base_width, dilation=self.dilation,
-                                norm_layer=norm_layer))
+                                norm_layer=norm_layer, r_adv=self.r_adv, r_nat=self.r_nat))
 
         return nn.Sequential(*layers)
 
-    def _forward_impl(self, x, return_features=False):
-
+    def _forward_impl(self, x, return_features=False, thread=None):
+        # print(x.shape, thread)
         # normalize
-        x = self.normalize(x)
+        if self.do_normalize:
+            x = self.normalize(x)
 
         # See note [TorchScript super()]
         x = self.conv1(x)
@@ -210,59 +225,23 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
 
-        x = self.layer1(x)
+        # print(x.shape)
+        x = self.layer1([x,thread])
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
 
-        x = self.avgpool(x)
+        x = self.avgpool(x[0])
         x = torch.flatten(x, 1)
 
         if return_features:
             return x
-
+        
         x = self.fc(x)
         return x
 
-    def forward(self, x, return_features=False):
-        return self._forward_impl(x, return_features)
-
-class proj_head(nn.Module):
-    def __init__(self, ch, twoLayerProj=False):
-        super(proj_head, self).__init__()
-        self.in_features = ch
-        self.twoLayerProj = twoLayerProj
-
-        self.fc1 = nn.Linear(ch, ch)
-        self.bn1 = nn.BatchNorm1d(ch)
-        self.fc2 = nn.Linear(ch, ch, bias=False)
-        self.bn2 = nn.BatchNorm1d(ch)
-
-        if not twoLayerProj:
-            self.fc3 = nn.Linear(ch, ch, bias=False)
-            self.bn3 = nn.BatchNorm1d(ch)
-
-        self.relu = nn.ReLU(inplace=True)
-
-    def forward(self, x, bn_name):
-        # debug
-        # print("adv attack: {}".format(flag_adv))
-
-        x = self.fc1(x)
-        x = self.bn1([x, bn_name])
-
-        x = self.relu(x)
-
-        x = self.fc2(x)
-        x = self.bn2([x, bn_name])
-
-        if not self.twoLayerProj:
-            x = self.relu(x)
-
-            x = self.fc3(x)
-            x = self.bn3([x, bn_name])
-
-        return x
+    def forward(self, x, return_features=False,thread=None):
+        return self._forward_impl(x, return_features,thread)
 
 
 def _resnet(arch, block, layers, pretrained, progress, **kwargs):
@@ -274,7 +253,7 @@ def _resnet(arch, block, layers, pretrained, progress, **kwargs):
     return model
 
 
-def resnet18(pretrained=False, progress=True, do_normalize=1, **kwargs):
+def resnet18(pretrained=False, progress=True, **kwargs):
     r"""ResNet-18 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
 
@@ -285,9 +264,7 @@ def resnet18(pretrained=False, progress=True, do_normalize=1, **kwargs):
     return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress,
                    **kwargs)
 
-
-
-def resnet34(pretrained=False, progress=True, do_normalize=1,**kwargs):
+def resnet34(pretrained=False, progress=True, **kwargs):
     r"""ResNet-34 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
 
@@ -299,7 +276,7 @@ def resnet34(pretrained=False, progress=True, do_normalize=1,**kwargs):
                    **kwargs)
 
 
-def resnet50(pretrained=False, progress=True, do_normalize=1, **kwargs):
+def resnet50(pretrained=False, progress=True, **kwargs):
     r"""ResNet-50 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
 

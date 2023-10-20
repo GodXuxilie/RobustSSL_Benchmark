@@ -31,16 +31,6 @@ We consider the following RobustSSL methods:
 
 To provide a comprehensive benchmark, we welcome incoraporating new self-supervised robust pre-training methods into our repo!
 
-<!-- (https://www.dropbox.com/sh/h1hkv3lt2f2zvi2/AACp5IWNaMcqrYAu6hr__4yea?dl=0) -->
-
-
-
-
-
-<!-- In the directory of ```ACL_Methods```, we provide the official codes of [IR (NeurIPS'23)]() and  -->
-
-<!-- we cloned the pre-training code of  You can follow the script in their corresponding ```readme.md``` to conduct robust pre-training. -->
-
 ## Fine-Tuning
 Here, we provide two kinds of fine-tuning methods:
 - [Vanilla fine-tuning](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/Vanilla): You need to specify the hyper-parameters such as the learning rate and the batch size for each pre-trained models. We provide all the scripts for finetuning and evalution in the file [```run_vanilla_tune.sh```](https://github.com/GodXuxilie/ACL_Benchmark/blob/main/Finetuning_Methods/Vanilla/run_vanilla_tune.sh).

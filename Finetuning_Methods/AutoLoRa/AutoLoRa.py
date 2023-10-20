@@ -3,8 +3,7 @@ import os
 import argparse
 import torch.backends.cudnn as cudnn
 import numpy as np
-from utils import train, get_loader, get_model,setup_hyperparameter, eval_test_nat, runAA, logger, eval_test_OOD
-
+from utils import train, get_loader, get_model,setup_hyperparameter, eval_test_nat, runAA, logger, eval_test_OOD, eval_adv_test
 
 parser = argparse.ArgumentParser(
     description='Finetuning (SLF, ALF, AFF) and Evaluation')
@@ -16,6 +15,8 @@ parser.add_argument('--experiment', type=str,
 parser.add_argument('--model', type=str, default='r18')
 parser.add_argument('--checkpoint', default='', type=str,
                     help='path to pretrained model')
+parser.add_argument('--dualBN', type=int, default=1, 
+                    help='Whether to use dual BN module during fine-tuning')
 
 parser.add_argument('--data', type=str, default='/home/x/xuxilie/data',
                     help='location of the data')
@@ -24,19 +25,21 @@ parser.add_argument('--dataset', default='cifar10', type=str,
 parser.add_argument('--resize', type=int, default=32,
                     help='location of the data')
 
-parser.add_argument('--batch-size', type=int, default=512, metavar='N',
+parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                     help='input batch size for training (default: 512)')
-parser.add_argument('--test-batch-size', type=int, default=512, metavar='N',
+parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                     help='input batch size for testing (default: 512)')
 
 parser.add_argument('--epochs', type=int, default=25, metavar='N',
                     help='number of epochs to train')
 parser.add_argument('--weight-decay', '--wd', default=2e-4,
                     type=float, metavar='W')
-parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
                     help='learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                     help='SGD momentum')
+parser.add_argument('--decreasing_lr', default='15,20',
+                    help='decreasing strategy')
 
 parser.add_argument('--epsilon', type=float, default=8. / 255.,
                     help='perturbation')
@@ -54,51 +57,84 @@ parser.add_argument('--eval-AA', action='store_true',
 parser.add_argument('--eval-OOD', action='store_true',
                     help='if specified, eval the loaded model')
 
-parser.add_argument('--resume', action='store_true',
-                    help='if resume training')
-parser.add_argument('--start-epoch', default=0, type=int,
-                    help='the start epoch number')
-
-parser.add_argument('--decreasing_lr', default='10,20',
-                    help='decreasing strategy')
-
 parser.add_argument('--pretraining', type=str, default='ACL',
-                    help='ACL, AdvCL, A-InfoNCE, DeACL, DynACL, DynACL++, DynACL_IR, DynACL++_IR')
+                    choices=['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL_AIR', 'DynACL_AIR++', 'DynACL_RCS'])
 parser.add_argument('--mode', type=str, default='ALL',
-                    help='ALL, SLF, ALF, AFF, SFF')
+                    choices=['ALL', 'SLF', 'ALF', 'AFF'])
 
+
+parser.add_argument('--autolora', action='store_true',
+                    help='if specified, eval the loaded model')
+parser.add_argument('--r_nat', type=int, default=0, 
+                    help='rank of the low-rank branch. If it is above 0, it uses AutoLoRa')
+parser.add_argument('--val', type=float, default=0.0, help='validation size')
+parser.add_argument('--scale', type=int, default=6, help='The scale of weight for the KL loss')
+parser.add_argument('--autoLR', type=int, default=0, 
+                    help='Whether to use the automatic learning rate scheduler')
+parser.add_argument('--divide', type=int, default=2, 
+                    help='The decay rate of learning rate in the automatic learning rate scheduler')
+
+
+parser.add_argument('--seed', type=int, default=1, help='the directory to save the models')
 parser.add_argument('--test_frequency', type=int, default=0,
                     help='validation frequency during finetuning, 0 for no evaluation')   
 
 parser.add_argument('--gpu', type=str, default='0', help='Set up the GPU id')
+parser.add_argument('--occupy', type=int, default=1, help='Set up the GPU id')
+parser.add_argument('--W', type=str, default='W2', help='Set up the GPU id')
 
 args = parser.parse_args()
 
+import torch
+
+def check_mem(cuda_device):
+    devices_info = os.popen('"/usr/bin/nvidia-smi" --query-gpu=memory.total,memory.used --format=csv,nounits,noheader').read().strip().split("\n")
+    total, used = devices_info[int(cuda_device)].split(',')
+    return total,used
+
+def occumpy_mem(cuda_device):
+    total, used = check_mem(cuda_device)
+    total = int(total)
+    used = int(used)
+    max_mem = int(total)
+    block_mem = int(max_mem * 0.7)
+    x = torch.cuda.FloatTensor(256,1024,block_mem)
+    del x
+
 # settings
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+print(args.gpu)
+if args.occupy:
+    occumpy_mem(args.gpu)
 model_dir = os.path.join('checkpoints', args.experiment)
-print(model_dir)
+
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
-log = logger(os.path.join(model_dir))
-log.info(str(args))
 device = 'cuda'
 cudnn.benchmark = True
 
+### Setting AutoLoRa ###
+if args.autolora:
+    args.r_nat = 8
+    args.autoLR = 1
+    args.epochs = 50
+    args.test_frequency = 1
+    args.scale = 6
 
 if args.eval_only:
-    common_corrup_dir = 'checkpoints_hp/' + args.experiment + '/common_corruptions'
+    log = logger(os.path.join(model_dir))
+    common_corrup_dir = 'checkpoints/' + args.experiment + '/common_corruptions'
     if not os.path.exists(common_corrup_dir):
         os.makedirs(common_corrup_dir)
     common_corrup_log = logger(os.path.join(common_corrup_dir))
 
-    robust_dir = 'checkpoints_hp/' + args.experiment + '/robust'
+    robust_dir = 'checkpoints/' + args.experiment + '/robust'
     if not os.path.exists(robust_dir):
         os.makedirs(robust_dir)
     robust_log = logger(os.path.join(robust_dir))
     AA_log = robust_dir + '/AA_details.txt'
 
-    result_dir = 'checkpoints_hp/' + args.experiment + '/result/'
+    result_dir = 'checkpoints/' + args.experiment + '/result/'
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     result_log = logger(os.path.join(result_dir))
@@ -112,36 +148,40 @@ if args.eval_only:
     model.eval()
 
     # eval natural accuracy
-    nat_acc = eval_test_nat(model, test_loader, device, advFlag=None)
-    log.info('standard acc: {:.2f}'.format(nat_acc * 100))
+    nat_acc = eval_test_nat(model, test_loader, device, advFlag)
+    log.info('{} standard acc: {:.2f}'.format(mode, nat_acc * 100))
     
     # eval robustness against adversarial attacks
     if args.eval_AA:
-        AA_acc = runAA(model, test_loader, AA_log, advFlag=None)
-        log.info('robust acc: {:.2f}'.format(AA_acc * 100))
+        PGD20_acc = eval_adv_test(model, device, test_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=torch.nn.functional.cross_entropy, log=log, attack_iter=args.num_steps_test)
+        log.info('{} PGD20 acc: {:.2f}'.format(mode, PGD20_acc))
+        
+        AA_acc = runAA(args, model, test_loader, AA_log, advFlag=None)
+        log.info('{} robust acc: {:.2f}'.format(mode, AA_acc * 100))
 
     # eval robustness againt common corruptions
     if args.eval_OOD:
         common_corrup_dir = os.path.join(model_dir, 'common_corruptions')
         common_corrup_log = logger(os.path.join(common_corrup_dir))
         ood_acc_list, ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag=None)
-        log.info('mean corruption acc: {:.2f}'.format(ood_acc_mean * 100))
+        log.info('{} mean corruption acc: {:.2f}'.format(mode, ood_acc_mean * 100))
         for i in range(5):
-            log.info('corruption severity-{} acc: {:.2f}'.format(i+1, ood_acc_list[i] * 100))
+            log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, ood_acc_list[i] * 100))
     
 else:
-    common_corrup_dir = 'checkpoints_hp/' + args.experiment + '/common_corruptions'
+    common_corrup_dir = 'checkpoints/' + args.experiment + '/common_corruptions'
     if not os.path.exists(common_corrup_dir):
         os.makedirs(common_corrup_dir)
     common_corrup_log = logger(os.path.join(common_corrup_dir))
 
-    robust_dir = 'checkpoints_hp/' + args.experiment + '/robust'
+    robust_dir = 'checkpoints/' + args.experiment + '/robust'
     if not os.path.exists(robust_dir):
         os.makedirs(robust_dir)
     robust_log = logger(os.path.join(robust_dir))
     AA_log = robust_dir + '/AA_details.txt'
 
-    result_dir = 'checkpoints_hp/' + args.experiment + '/result/'
+    result_dir = 'checkpoints/' + args.experiment + '/result/'
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     result_log = logger(os.path.join(result_dir))
@@ -149,23 +189,33 @@ else:
 
     if args.mode in ['ALL', 'SLF']:
         mode = 'SLF'
+        model_dir = os.path.join('checkpoints', args.experiment, mode)
+        print(model_dir)
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        log = logger(os.path.join(model_dir))
+        log.info(str(args))
         advFlag = None
         log.info('Finetuning mode: {}'.format(mode))
         # SLF finetuning
         args = setup_hyperparameter(args, mode)
-
+        
         train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
-        
+        model = train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir, vali_loader)
 
         # eval natural accuracy
         SLF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, SLF_nat_acc * 100))
 
-        # eval robustness against adversarial attacks
+        # eval robustness against adversarial attacks (PGD20)
+        SLF_PGD20_acc = eval_adv_test(model, device, test_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=torch.nn.functional.cross_entropy, log=log, attack_iter=args.num_steps_test)
+        result_log.info('{} PGD20 acc: {:.2f}'.format(mode, SLF_PGD20_acc))
+
+        # eval robustness against adversarial attacks (AutoAttack)
         if args.eval_AA:
-            SLF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
+            SLF_AA_acc = runAA(args, model, test_loader, AA_log, advFlag)
             result_log.info('{} robust acc: {:.2f}'.format(mode, SLF_AA_acc * 100))
 
         # eval robustness againt common corruptions
@@ -177,6 +227,13 @@ else:
 
     if args.mode in ['ALL', 'ALF']:
         mode = 'ALF'
+        model_dir = os.path.join('checkpoints', args.experiment, mode)
+        print(model_dir)
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        log = logger(os.path.join(model_dir))
+        log.info(str(args))
+        
         log.info('Finetuning mode: {}'.format(mode))
 
         advFlag = None
@@ -184,15 +241,20 @@ else:
 
         train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
+        model = train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir, vali_loader)
 
         # eval natural accuracy
         ALF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, ALF_nat_acc * 100))
 
-        # eval robustness against adversarial attacks
+        # eval robustness against adversarial attacks (PGD20)
+        ALF_PGD20_acc = eval_adv_test(model, device, test_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=torch.nn.functional.cross_entropy, log=log, attack_iter=args.num_steps_test)
+        result_log.info('{} PGD20 acc: {:.2f}'.format(mode, ALF_PGD20_acc))
+
+        # eval robustness against adversarial attacks (AutoAttack)
         if args.eval_AA:
-            ALF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
+            ALF_AA_acc = runAA(args, model, test_loader, AA_log, advFlag)
             result_log.info('{} robust acc: {:.2f}'.format(mode, ALF_AA_acc * 100))
 
         # eval robustness againt common corruptions
@@ -204,49 +266,33 @@ else:
 
     if args.mode in ['ALL', 'AFF']:
         mode = 'AFF'
+        model_dir = os.path.join('checkpoints', args.experiment, mode)
+        print(model_dir)
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        log = logger(os.path.join(model_dir))
+        log.info(str(args))
+        
         log.info('Finetuning mode: {}'.format(mode))
-
         args = setup_hyperparameter(args, mode)
         advFlag = None
 
         train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
         model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        model = train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
+        model = train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir, vali_loader)
 
         # eval natural accuracy
         AFF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
         result_log.info('{} standard acc: {:.2f}'.format(mode, AFF_nat_acc * 100))
 
-        # eval robustness against adversarial attacks
+        # eval robustness against adversarial attacks (PGD20)
+        AFF_PGD20_acc = eval_adv_test(model, device, test_loader, epsilon=args.epsilon, alpha=args.step_size,
+                          criterion=torch.nn.functional.cross_entropy, log=log, attack_iter=args.num_steps_test)
+        result_log.info('{} PGD20 acc: {:.2f}'.format(mode, AFF_PGD20_acc))
+
+        # eval robustness against adversarial attacks (AutoAttack)
         if args.eval_AA:
-            AFF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
-            result_log.info('{} robust acc: {:.2f}'.format(mode, AFF_AA_acc * 100))
-
-        # eval robustness againt common corruptions
-        if args.eval_OOD:
-            AFF_ood_acc_list, AFF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
-            result_log.info('{} mean corruption acc: {:.2f}'.format(mode, AFF_ood_acc_mean * 100))
-            for i in range(5):
-                result_log.info('{} corruption severity-{} acc: {:.2f}'.format(mode, i+1, AFF_ood_acc_list[i] * 100))
-
-    if args.mode in ['SFF']:
-        mode = 'SFF'
-        log.info('Finetuning mode: {}'.format(mode))
-
-        args = setup_hyperparameter(args, mode)
-        advFlag = None
-
-        train_loader, vali_loader, test_loader, num_classes, args = get_loader(args)
-        model, optimizer, scheduler = get_model(args, num_classes, mode, log, device=device)
-        model = train(args, model, optimizer, scheduler, train_loader, test_loader, mode, device, log, model_dir)
-
-        # eval natural accuracy
-        AFF_nat_acc = eval_test_nat(model, test_loader, device, advFlag)
-        result_log.info('{} standard acc: {:.2f}'.format(mode, AFF_nat_acc * 100))
-
-        # eval robustness against adversarial attacks
-        if args.eval_AA:
-            AFF_AA_acc = runAA(model, test_loader, AA_log, advFlag)
+            AFF_AA_acc = runAA(args, model, test_loader, AA_log, advFlag)
             result_log.info('{} robust acc: {:.2f}'.format(mode, AFF_AA_acc * 100))
 
         # eval robustness againt common corruptions
@@ -262,3 +308,4 @@ else:
             result_log.info('mean standard accuracy: {:.2f}'.format(np.mean([SLF_nat_acc * 100, ALF_nat_acc * 100, AFF_nat_acc * 100])))
         if args.eval_OOD:
             result_log.info('mean corruption accuracy: {:.2f}'.format(np.mean([SLF_ood_acc_mean * 100, ALF_ood_acc_mean * 100, AFF_ood_acc_mean * 100])))
+
