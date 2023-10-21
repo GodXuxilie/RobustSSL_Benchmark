@@ -2,6 +2,11 @@
 The wide-ranging applications of foundation models, espeically in safety-critical areas, necessitates the robust self-supervised learning which can yield strong adversarial robustness in downsteam tasks via fine-tuning.
 In this repo, we provide a benchmark for robustness transferability of robust pre-training.
 
+
+## [Leaderboard](https://robustssl.github.io)
+
+The leaderboard is demonstrates in [robustssl.github.io](https://robustssl.github.io).
+
 ## RobustSSL: Methods and Model Zoo
 
 We consider the following RobustSSL methods: 
@@ -70,9 +75,6 @@ We provide all the scripts for finetuning and evalution in the file ```run_tune_
 + [AutoAttack](https://github.com/fra31/auto-attack) (Install AutoAttack via ```pip install git+https://github.com/fra31/auto-attack```)
 + [robustbench](https://robustbench.github.io/) (Install robustbench via ```pip install git+https://github.com/RobustBench/robustbench.git```)
 
-## [Leaderboard](https://robustssl.github.io)
-
-The leaderboard is demonstrates in [robustssl.github.io](https://robustssl.github.io).
 
 <!-- We use the following evaluation metrics:
 + **SA** refers to the standard test accuracy evaluated on the *natural test data*.
