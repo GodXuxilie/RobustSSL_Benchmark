@@ -50,7 +50,6 @@ python AutoLoRa.py --adv_train
                    --num_classes number_of_classes
                    --model_arch ['resnet18', 'resnet50'] 
                    --model-path path_of_pretrained_model
-          
 ```
 
 **Performance:** AutoLoRa can further improve the robust test accuracy on the downstream dataset without tuning the hyper-parameters as shown in the following table.
