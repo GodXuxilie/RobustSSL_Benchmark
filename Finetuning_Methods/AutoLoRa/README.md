@@ -42,6 +42,17 @@ python AutoLoRa.py --autolora
 
 **Scripts:** [`run_autolora_HR.sh`](./high_resolution/run_autolora_HR.sh) provides the scripts to evaluate the transferabilitty from ImageNet-1K to high-resolution downstream tasks of 224 $\times$ 224 resolution, including DTD-57, DOG-120, CUB-200, and Caltech-256. 
 
+If you would like to fine-tuning your own pre-trained weights, please use the following script:
+```
+python AutoLoRa.py --adv_train 
+                   --model_root dir_to_save_model
+                   --dataset downstream_task: ['cifar10', 'cifar100', 'dtd', 'dog', 'cub', 'caltech256']
+                   --num_classes number_of_classes
+                   --model_arch ['resnet18', 'resnet50'] 
+                   --model-path path_of_pretrained_model
+          
+```
+
 **Performance:** AutoLoRa can further improve the robust test accuracy on the downstream dataset without tuning the hyper-parameters as shown in the following table.
 
 <div align="center">
