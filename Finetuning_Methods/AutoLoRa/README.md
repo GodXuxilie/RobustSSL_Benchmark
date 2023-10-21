@@ -20,6 +20,20 @@ AutoLoRa is an automated robust fine-tuning framework, which is composed of the 
 
 **Scripts:** [`run_autolora.sh`](./run_autolora.sh) provides the scripts to evaluate the transferabilitty from CIFAR-10/CIFAR-100 to STL-10 of 32 $\times$ 32 resolution.
 
+If you would like to fine-tuning your own pre-trained weights, please use the following script:
+```
+python AutoLoRa.py --autolora 
+                   --gpu gpu_id
+                   --experiment exp_name
+                   --dataset downstream_dataset: ['cifar10', 'cifar100', 'stl10'] 
+                   --pretraining pre_training_method_name: ['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL_AIR', 'DynACL_AIR++', 'DynACL_RCS'] 
+                   --model model_arch: ['r18','r34','r50'] 
+                   --checkpoint path_of_checkpoint
+                   --mode ALL
+                   --eval-AA 
+                   --eval-OOD            
+```
+
 **Performance:** AutoLoRa can further improve the robust test accuracy on the downstream dataset, whose the performance is presented in the leaderboards of [RobustSSL Benchmark](https://robustssl.github.io).
 
 ## Fine-Tuning on High-Resolution Downstream Datasets

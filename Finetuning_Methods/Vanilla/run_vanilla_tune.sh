@@ -1,5 +1,5 @@
 # Transferabilit from CIFAR-10 to CIFAR-10
-python vanilla_finetuning.py --gpu 3 --experiment ACL_cifar10_r18_cifar10 --dataset cifar10 --pretraining ACL --model r18 --checkpoint ./checkpoints/ACL.pt --mode AFF --eval-AA --eval-OOD
+python vanilla_finetuning.py --gpu 3 --experiment ACL_cifar10_r18_cifar10 --dataset cifar10 --pretraining ACL --model r18 --checkpoint ./checkpoints/ACL.pt --mode ALL --eval-AA --eval-OOD
 python vanilla_finetuning.py --gpu 3 --experiment DynACL_cifar10_r18_cifar10 --dataset cifar10 --pretraining DynACL --model r18 --checkpoint ./checkpoints/DynACL.pt --mode ALL --eval-AA --eval-OOD
 python vanilla_finetuning.py --gpu 3 --experiment AdvCL_cifar10_r18_cifar10 --dataset cifar10 --pretraining AdvCL --model r18 --checkpoint ./checkpoints/AdvCL.pt --mode ALL --eval-AA --eval-OOD --dualBN 0
 python vanilla_finetuning.py --gpu 2 --experiment AInfoNCE_cifar10_r18_cifar10 --dataset cifar10 --pretraining A-InfoNCE --model r18 --checkpoint ./checkpoints/AInfoNCE.pt --mode ALL --eval-AA --eval-OOD --dualBN 0

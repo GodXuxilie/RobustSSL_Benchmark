@@ -8,9 +8,9 @@ We provide the running script in [```run_vanilla_tune.sh```](./run_vanilla_tune.
 
 If you would like to fine-tuning your own pre-trained weights, please use the following script:
 ```
-python vanilla_finetuning.py --gpu gpu id \
+python vanilla_finetuning.py --gpu gpu_id
                              --experiment exp_name
-                             --dataset downstream_dataset: ['cifar10', 'cifar100', 'stl10']
+                             --dataset downstream_dataset: ['cifar10', 'cifar100', 'stl10'] 
                              --pretraining pre_training_method_name: ['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL_AIR', 'DynACL_AIR++', 'DynACL_RCS'] 
                              --model model_arch: ['r18','r34','r50'] 
                              --checkpoint path_of_checkpoint
