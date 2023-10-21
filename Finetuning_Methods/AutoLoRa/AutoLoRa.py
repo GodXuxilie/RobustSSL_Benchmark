@@ -142,7 +142,7 @@ if args.eval_only:
         log.info('{} robust acc: {:.2f}'.format(mode, AA_acc * 100))
 
     # eval robustness againt common corruptions
-    if args.eval_OOD:
+    if args.eval_OOD and args.dataset in ['cifar10', 'cifar100']:
         common_corrup_dir = os.path.join(model_dir, 'common_corruptions')
         common_corrup_log = logger(os.path.join(common_corrup_dir))
         ood_acc_list, ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag=None)
@@ -200,7 +200,7 @@ else:
             result_log.info('{} robust acc: {:.2f}'.format(mode, SLF_AA_acc * 100))
 
         # eval robustness againt common corruptions
-        if args.eval_OOD:
+        if args.eval_OOD and args.dataset in ['cifar10', 'cifar100']:
             SLF_ood_acc_list, SLF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, SLF_ood_acc_mean * 100))
             for i in range(5):
@@ -239,7 +239,7 @@ else:
             result_log.info('{} robust acc: {:.2f}'.format(mode, ALF_AA_acc * 100))
 
         # eval robustness againt common corruptions
-        if args.eval_OOD:
+        if args.eval_OOD and args.dataset in ['cifar10', 'cifar100']:
             ALF_ood_acc_list, ALF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, ALF_ood_acc_mean * 100))
             for i in range(5):
@@ -277,7 +277,7 @@ else:
             result_log.info('{} robust acc: {:.2f}'.format(mode, AFF_AA_acc * 100))
 
         # eval robustness againt common corruptions
-        if args.eval_OOD:
+        if args.eval_OOD and args.dataset in ['cifar10', 'cifar100']:
             AFF_ood_acc_list, AFF_ood_acc_mean = eval_test_OOD(model, args.dataset, common_corrup_log, device, advFlag)
             result_log.info('{} mean corruption acc: {:.2f}'.format(mode, AFF_ood_acc_mean * 100))
             for i in range(5):
@@ -287,6 +287,6 @@ else:
         result_log.info('mean robust accuracy: {:.2f}'.format(np.mean([SLF_AA_acc * 100, ALF_AA_acc * 100, AFF_AA_acc * 100])))
         if args.eval_AA:
             result_log.info('mean standard accuracy: {:.2f}'.format(np.mean([SLF_nat_acc * 100, ALF_nat_acc * 100, AFF_nat_acc * 100])))
-        if args.eval_OOD:
+        if args.eval_OOD and args.dataset in ['cifar10', 'cifar100']:
             result_log.info('mean corruption accuracy: {:.2f}'.format(np.mean([SLF_ood_acc_mean * 100, ALF_ood_acc_mean * 100, AFF_ood_acc_mean * 100])))
 
