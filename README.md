@@ -163,25 +163,27 @@ If you fine the code is useful to you, please cite the following papers by copyi
   year={2023}
 }
 
+
 @inproceedings{xu2023RCS,
   title={Efficient Adversarial Contrastive Learning via Robustness-Aware Coreset Selection},
   author={Xu, Xilie and Zhang, Jingfeng and Liu, Feng and Sugiyama, Masashi and Kankanhalli, Mohan},
-  booktitle={Conference on Neural Information Processing Systems (NeurIPS)},
+  booktitle={NeurIPS},
   year={2023}
 }
 
-@inproceedings{xu2023IR,
+@inproceedings{xu2023AIR,
   title={Enhancing Adversarial Contrastive Learning via Adversarial Invariant Regularization},
   author={Xu, Xilie and Zhang, Jingfeng and Liu, Feng and Sugiyama, Masashi and Kankanhalli, Mohan},
-  booktitle={Conference on Neural Information Processing Systems (NeurIPS)},
+  booktitle={NeurIPS},
   year={2023}
 }
 
 @inproceedings{luo2023DynACL,
-    title = {Rethinking the Effect of Data Augmentation in Adversarial Contrastive Learning},
-    author = {Luo, Rundong and Wang, Yifei and Wang, Yisen},
-    booktitle = {ICLR},
-    year = {2023},
+    title={Rethinking the Effect of Data Augmentation in Adversarial Contrastive Learning},
+    author={Rundong Luo and Yifei Wang and Yisen Wang},
+    booktitle={The Eleventh International Conference on Learning Representations},
+    year={2023},
+    url={https://openreview.net/forum?id=0qmwFNJyxCL}
 }
 
 @inproceedings{zhang2022DeACL,
@@ -202,24 +204,30 @@ If you fine the code is useful to you, please cite the following papers by copyi
   organization={Springer}
 }
 
-@inproceedings{fan2021AdvCL,
+@article{fan2021AdvCL,
   title={When Does Contrastive Learning Preserve Adversarial Robustness from Pretraining to Finetuning?},
-  author={Lijie Fan, Sijia Liu, Pin-Yu Chen, Gaoyuan Zhang and Chuang Gan},
-  booktitle={Conference on Neural Information Processing Systems (NeurIPS)},
+  author={Fan, Lijie and Liu, Sijia and Chen, Pin-Yu and Zhang, Gaoyuan and Gan, Chuang},
+  journal={Advances in Neural Information Processing Systems},
+  volume={34},
+  pages={21480--21492},
   year={2021}
 }
 
 @article{jiang2020ACL,
-    title = {Robust Pre-Training by Adversarial Contrastive Learning},
-    author = {Ziyu Jiang and Tianlong Chen and Ting Chen and Zhangyang Wang},
-    booktitle = {Advances in Neural Information Processing Systems 34},
-    year = {2020}
-    }
+  title={Robust pre-training by adversarial contrastive learning},
+  author={Jiang, Ziyu and Chen, Tianlong and Chen, Ting and Wang, Zhangyang},
+  journal={Advances in Neural Information Processing Systems},
+  volume={33},
+  pages={16199--16210},
+  year={2020}
+}
 
-@inproceedings{kim2020RoCL,
-  title={Adversarial Self-Supervised Contrastive Learning},
-  author={Minseon Kim and Jihoon Tack and Sung Ju Hwang},
-  booktitle = {Advances in Neural Information Processing Systems},
+@article{kim2020RoCL,
+  title={Adversarial self-supervised contrastive learning},
+  author={Kim, Minseon and Tack, Jihoon and Hwang, Sung Ju},
+  journal={Advances in Neural Information Processing Systems},
+  volume={33},
+  pages={2983--2994},
   year={2020}
 }
 ```
