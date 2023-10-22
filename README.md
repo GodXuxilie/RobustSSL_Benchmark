@@ -18,6 +18,7 @@ We consider the following RobustSSL methods:
 - [DeAC (Zhang et al., ECCV'22)](https://github.com/pantheon5100/DeACL/tree/dc0807e0b2b133fec3c9a3ec2dca6f3a2527cb5e)
 - [AdvCL (Fan et al., NeruIPS'21)](https://github.com/LijieFan/AdvCL)
 - [ACL (Jiang et al., NeurIPS'20)](https://github.com/VITA-Group/Adversarial-Contrastive-Learning)
+- [RoCL (Kim et al., NeurIPS'20)](https://github.com/Kim-Minseon/RoCL)
 
 <!-- - [RoCL (NeurIPS'20)](https://github.com/Kim-Minseon/RoCL) -->
 
