@@ -40,7 +40,7 @@ python AutoLoRa.py --autolora
 
 **Backbones:** ImageNet-1K adversarially pre-trained models downloaded from https://github.com/microsoft/robust-models-transfer.
 
-**Scripts:** [`run_autolora_HR.sh`](./high_resolution/run_autolora_HR.sh) provides the scripts to evaluate the transferabilitty from ImageNet-1K to high-resolution downstream tasks of 224 $\times$ 224 resolution, including DTD-57, DOG-120, CUB-200, and Caltech-256. 
+**Scripts:** [`run_autolora_HR.sh`](https://github.com/GodXuxilie/RobustSSL_Benchmark/blob/main/Finetuning_Methods/AutoLoRa/high_resolution/run_autolora_HR.sh) provides the scripts to evaluate the transferabilitty from ImageNet-1K to high-resolution downstream tasks of 224 $\times$ 224 resolution, including DTD-57, DOG-120, CUB-200, and Caltech-256. 
 
 If you would like to fine-tuning your own pre-trained weights, please use the following script:
 ```
