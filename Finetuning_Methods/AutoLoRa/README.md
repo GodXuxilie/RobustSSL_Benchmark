@@ -11,7 +11,7 @@ Xilie Xu (NUS), Jingfeng Zhang (The University of Auckland/RIKEN-AIP), Mohan Kan
 
 AutoLoRa is an automated robust fine-tuning framework, which is composed of the following two key components:
 - **A low-rank branch** (LoRa): making the model learn adversarial and natural data via the feature extractor and the LoRa, respectively.
-- **An automatic scheduler of learning rate and scalars**: exempting the computational burden of searching for an appropriate hyper-parameters via grid search.
+- **An automatic scheduler of learning rate and scalars**: exempting the computational burden of searching for appropriate hyper-parameters via grid search.
 
 
 ## Fine-Tuning on Low-Resolution Downstream Datasets
@@ -20,7 +20,7 @@ AutoLoRa is an automated robust fine-tuning framework, which is composed of the 
 
 **Scripts:** [`run_autolora.sh`](./run_autolora.sh) provides the scripts to evaluate the transferabilitty from CIFAR-10/CIFAR-100 to STL-10 of 32 $\times$ 32 resolution.
 
-If you would like to fine-tuning your own pre-trained weights, please use the following script:
+If you would like to fine-tune your own pre-trained weights, please use the following script:
 ```
 python AutoLoRa.py --autolora 
                    --gpu gpu_id
@@ -34,15 +34,15 @@ python AutoLoRa.py --autolora
                    --eval-OOD            
 ```
 
-**Performance:** AutoLoRa can further improve the robust test accuracy on the downstream dataset, whose the performance is presented in the leaderboards of [RobustSSL Benchmark](https://robustssl.github.io).
+**Performance:** AutoLoRa can further improve the robust test accuracy on the downstream dataset, whose performance is presented in the leaderboards of [RobustSSL Benchmark](https://robustssl.github.io).
 
 ## Fine-Tuning on High-Resolution Downstream Datasets
 
-**Backbones:** ImageNet-1K adversarially pre-trained models downloaded from https://github.com/microsoft/robust-models-transfer.
+**Backbones:** ImageNet-1K adversarially pre-trained models downloaded from ~~https://github.com/microsoft/robust-models-transfer (this official GitHub has been deleted)~~ https://github.com/MadryLab/robustness.
 
 **Scripts:** [`run_autolora_HR.sh`](https://github.com/GodXuxilie/RobustSSL_Benchmark/blob/main/Finetuning_Methods/AutoLoRa/high_resolution/run_autolora_HR.sh) provides the scripts to evaluate the transferabilitty from ImageNet-1K to high-resolution downstream tasks of 224 $\times$ 224 resolution, including DTD-57, DOG-120, CUB-200, and Caltech-256. 
 
-If you would like to fine-tuning your own pre-trained weights, please use the following script:
+If you would like to fine-tune your own pre-trained weights, please use the following script:
 ```
 python AutoLoRa.py --adv_train 
                    --model_root dir_to_save_model
