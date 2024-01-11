@@ -11,7 +11,7 @@ If you would like to fine-tuning your own pre-trained weights, please use the fo
 python vanilla_finetuning.py --gpu gpu_id
                              --experiment exp_name
                              --dataset downstream_dataset: ['cifar10', 'cifar100', 'stl10'] 
-                             --pretraining pre_training_method_name: ['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL_AIR', 'DynACL_AIR++', 'DynACL_RCS'] 
+                             --pretraining pre_training_method_name: ['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL-AIR', 'DynACL-AIR++', 'DynACL-RCS'] 
                              --model model_arch: ['r18', 'r34', 'r50'] 
                              --checkpoint path_of_checkpoint
                              --mode finetuning_mode: ['ALL', 'SLF', 'ALF', 'AFF']
