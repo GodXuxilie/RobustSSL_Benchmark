@@ -59,7 +59,7 @@ parser.add_argument('--eval-OOD', action='store_true',
                     help='if specified, eval the loaded model')
 
 parser.add_argument('--pretraining', type=str, default='ACL',
-                    choices=['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL_AIR', 'DynACL_AIR++', 'DynACL_RCS'])
+                    choices=['ACL', 'AdvCL', 'A-InfoNCE', 'DeACL', 'DynACL', 'DynACL++', 'DynACL-AIR', 'DynACL-AIR++', 'DynACL-RCS'])
 parser.add_argument('--mode', type=str, default='ALL',
                     choices=['ALL', 'SLF', 'ALF', 'AFF'])
 

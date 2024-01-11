@@ -526,7 +526,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
                 state_dict= load_BN_checkpoint_AdvCL(args, state_dict)
             elif args.pretraining == 'DeACL':
                 state_dict = load_BN_checkpoint_DeACL(args, state_dict)
-            elif args.pretraining in ['ACL','DynACL','DynACL++','DynACL_AIR','ACL_AIR','DynACL_AIR++', 'DynACL_RCS'] :
+            elif args.pretraining in ['ACL','DynACL','DynACL++','DynACL-AIR','ACL_AIR','DynACL-AIR++', 'DynACL-RCS'] :
                 args.bnNameCnt = 1
                 state_dict = cvt_state_dict(state_dict, args, num_classes=num_classes)
             state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
@@ -544,7 +544,7 @@ def get_model(args, num_classes, mode, log, device='cuda'):
                 state_dict = load_BN_checkpoint_AdvCL(args, state_dict)
             elif args.pretraining == 'DeACL':
                 state_dict = load_BN_checkpoint_DeACL(args, state_dict)
-            elif not args.dualBN and args.pretraining in ['ACL','DynACL','DynACL++','DynACL_AIR','ACL_AIR','DynACL_AIR++','DynACL_RCS'] :
+            elif not args.dualBN and args.pretraining in ['ACL','DynACL','DynACL++','DynACL-AIR','ACL_AIR','DynACL-AIR++','DynACL-RCS'] :
                 args.bnNameCnt = 1
                 state_dict = cvt_state_dict(state_dict, args, num_classes=num_classes)
             state_dict['fc.weight'] = torch.zeros(num_classes, 512).to(device)
@@ -965,7 +965,7 @@ def setup_hyperparameter(args, mode):
                 args.lr = 0.01
             if args.dataset == 'cifar100':
                 args.batch_size = 512
-                args.lr = 0.1
+                args.lr = 0.09
             if args.dataset == 'stl10' and args.resize == 96:
                 args.batch_size = 512
                 args.lr = 0.1
