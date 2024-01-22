@@ -1,5 +1,5 @@
 # AutoLoRa: A Parameter-Free Automated Robust Fine-Tuning Framework
-This is the source code of the paper "AutoLoRa: A Parameter-Free Automated Robust Fine-Tuning Framework", <br>
+This is the source code of the ICLR 2024 paper "AutoLoRa: A Parameter-Free Automated Robust Fine-Tuning Framework", <br>
 Xilie Xu (NUS), Jingfeng Zhang (The University of Auckland/RIKEN-AIP), Mohan Kankanhalli (NUS). <br>
 [[PDF](https://arxiv.org/abs/2310.01818)]
 
