@@ -93,12 +93,13 @@ If you fine the code is useful to you, please cite the following papers by copyi
   year={2023}
 }
 
-
-@inproceedings{xu2023RCS,
-  title={Efficient Adversarial Contrastive Learning via Robustness-Aware Coreset Selection},
-  author={Xu, Xilie and Zhang, Jingfeng and Liu, Feng and Sugiyama, Masashi and Kankanhalli, Mohan},
-  booktitle={NeurIPS},
-  year={2023}
+@inproceedings{
+xu2023efficient,
+title={Efficient Adversarial Contrastive Learning via Robustness-Aware Coreset Selection},
+author={Xilie Xu and Jingfeng Zhang and Feng Liu and Masashi Sugiyama and Mohan Kankanhalli},
+booktitle={Thirty-seventh Conference on Neural Information Processing Systems},
+year={2023},
+url={https://openreview.net/forum?id=fpzA8uRA95}
 }
 
 @inproceedings{xu2023AIR,
