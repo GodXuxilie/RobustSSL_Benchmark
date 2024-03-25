@@ -64,10 +64,12 @@ python AutoLoRa.py --adv_train
 ## BibTeX
 If you find the code useful, please cite our paper.
 ```
-@article{xu2023autolora,
-  title={AutoLoRa: A Parameter-Free Automated Robust Fine-Tuning Framework},
-  author={Xu, Xilie and Zhang, Jingfeng and Kankanhalli, Mohan},
-  journal={arXiv preprint arXiv:2310.01818},
-  year={2023}
+@inproceedings{
+xu2024autolora,
+title={AutoLoRa: A Parameter-Free Automated Robust Fine-Tuning Framework},
+author={Xilie Xu and Jingfeng Zhang and Mohan Kankanhalli},
+booktitle={The Twelfth International Conference on Learning Representations},
+year={2024},
+url={https://openreview.net/forum?id=09xFexjhqE}
 }
 ```
