@@ -41,7 +41,7 @@ To provide a comprehensive benchmark, we welcome incoraporating new self-supervi
 Here, we provide two kinds of fine-tuning methods:
 - [Vanilla Fine-tuning](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/Vanilla_Finetuning): You need to specify the hyper-parameters such as the learning rate and the batch size for each pre-trained models. We provide all the scripts for finetuning and evalution in the file [```run_vanilla_tune.sh```](./Finetuning_Methods/Vanilla/run_vanilla_tune.sh).
 <!-- ```setup_hyperparameter(args, mode)``` of the file ```utils.py```. -->
-- [AutoLoRa (Xu et al., ArXiv'23)](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/AutoLoRa): It is a **parameter-free and automated** robust fine-tuning framework. You *DO NOT* need to search for the appropriate hyper-parameters. We provide all the scripts for finetuning and evalution in the file [```run_autolora.sh```](./Finetuning_Methods/AutoLoRa/run_autolora.sh).
+- [AutoLoRa (Xu et al., ICLR'24)](https://github.com/GodXuxilie/ACL_Benchmark/tree/main/Finetuning_Methods/AutoLoRa): It is a **parameter-free and automated** robust fine-tuning framework. You *DO NOT* need to search for the appropriate hyper-parameters. We provide all the scripts for finetuning and evalution in the file [```run_autolora.sh```](./Finetuning_Methods/AutoLoRa/run_autolora.sh).
 
 To provide a comprehensive benchmark, we welcome incoraporating new robust fine-tuning methods into our repo!
 
