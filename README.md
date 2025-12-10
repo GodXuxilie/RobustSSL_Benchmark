@@ -5,7 +5,7 @@ In this repo, we provide a benchmark for robustness transferability of robust pr
 
 ## [Leaderboard](https://robustssl.github.io)
 
-The leaderboard is demonstrates in [robustssl.github.io](https://robustssl.github.io).
+The leaderboard is demonstrated in [robustssl.github.io](https://robustssl.github.io).
 
 ## RobustSSL: Methods and Model Zoo
 
